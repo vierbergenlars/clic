@@ -1,0 +1,9 @@
+#!/usr/bin/env php
+<?php
+
+use vierbergenlars\CliCentral\CliCentralApplication;
+
+require __DIR__.'/../vendor/autoload.php';
+
+$app = new CliCentralApplication();
+$app->run();

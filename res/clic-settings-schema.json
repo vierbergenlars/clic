@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "vhosts": {
+      "type": "array",
+      "required": ["application", "symlink"],
+      "additionalProperties": false,
+      "items": {
+        "type": "object",
+        "description": "Links a vhost symlink name to an application",
+        "properties": {
+          "application": {
+            "type": "string"
+          },
+          "symlink": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "repositories": {
+      "type": "object",
+      "description": "Already configured repositories. A hash of repository names (keys) and configured settings (values)",
+      "additionalProperties": false,
+      "patternProperties": {
+        ".*": {
+          "type": "object",
+          "description": "Initialized repositories",
+          "required": ["identity-file", "ssh-alias"],
+          "properties": {
+            "identity-file": {
+              "type": "string",
+              "description": "SSH private key file for deploy"
+            },
+            "ssh-alias": {
+              "type": "string",
+              "description": "SSH alias to connect to the repository"
+            }
+          }
+        }
+      }
+    },
+    "config": {
+      "type": "object",
+      "description": "Clic options",
+      "additionalProperties": false,
+      "properties": {
+        "applications-dir": {
+          "type": "string",
+          "description": "Path to the applications directory",
+          "default": "$HOME/apps"
+        },
+        "vhosts-dir": {
+          "type": "string",
+          "description": "Path to the vhosts directory",
+          "default": "$HOME/public_html"
+        },
+        "ssh-dir": {
+          "type": "string",
+          "description":" Path to .ssh directory, to store generated keys and change ssh configuration",
+          "default": "$HOME/.ssh"
+        }
+      }
+    }
+  }
+}

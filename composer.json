@@ -1,0 +1,18 @@
+{
+  "name": "vierbergenlars/clic",
+  "type": "project",
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "vierbergenlars\\CliCentral\\": "src/"
+    }
+  },
+  "require": {
+    "symfony/console": "^3.1",
+    "symfony/finder": "^3.1",
+    "symfony/process": "^3.1",
+    "justinrainbow/json-schema": "^2.0"
+  }
+}

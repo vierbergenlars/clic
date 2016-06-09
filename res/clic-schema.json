@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "scripts": {
+      "type": "object",
+      "description": "This is a hash of script names (keys) and shell commands (values) to execute.",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^([a-z0-9-])+$": {
+          "type": ["string", "array"],
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

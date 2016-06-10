@@ -70,4 +70,9 @@ class GlobalConfiguration extends Configuration
     {
         $this->setConfigOption(['repositories', $repositoryName], $conf->getConfig());
     }
+
+    public function removeRepositoryConfiguration($repositoryName)
+    {
+        $this->removeConfigOption(['repositories', $repositoryName]);
+    }
 }

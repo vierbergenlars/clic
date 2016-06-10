@@ -88,6 +88,19 @@ abstract class Configuration
         $this->config = $conf;
     }
 
+    protected function removeConfigOption(array $path)
+    {
+        $conf = $this->getConfig();
+        $c=&$conf;
+        $lastPart = array_pop($path);
+        while(($part = array_shift($path)) !== null) {
+            if(!isset($c->{$part}))
+                return;
+            $c = &$c->{$part};
+        }
+        unset($c->{$lastPart});
+        $this->config = $conf;
+    }
     abstract protected function getSchema();
 
     public function write()

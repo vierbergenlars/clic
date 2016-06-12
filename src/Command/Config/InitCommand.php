@@ -21,9 +21,6 @@ class InitCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        if(!$input->isInteractive())
-            throw new InvalidOptionException('The --no-interaction|-n option cannot be used with this command, as it will ask interactive questions.');
-
         $configHelper = $this->getHelper('configuration');
         /* @var $configHelper GlobalConfigurationHelper */
         $questionHelper = $this->getHelper('question');
@@ -64,6 +61,22 @@ class InitCommand extends Command
         });
         $configHelper->getConfiguration()->setVhostsDirectory($questionHelper->ask($input, $output, $question));
 
+        /*
+         * .shh directory
+         */
+        try {
+            $sshDir = $configHelper->getConfiguration()->getSshDirectory();
+        } catch(MissingConfigurationParameterException $ex) {
+            $sshDir = null;
+        }
+        $question = new Question('Where is your .ssh directory located?', $sshDir);
+        $question->setValidator(function($dir) {
+            if(!is_dir($dir))
+                if(!@mkdir($dir, 0777, true))
+                    throw new NotADirectoryException($dir);
+            return $dir;
+        });
+        $configHelper->getConfiguration()->setSshDirectory($questionHelper->ask($input, $output, $question));
         $configHelper->getConfiguration()->write();
 
         $output->writeln(sprintf('<comment>Settings written to <info>%s</info></comment>', $configHelper->getConfiguration()->getConfigFile()));

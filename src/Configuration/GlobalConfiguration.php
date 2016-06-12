@@ -15,6 +15,7 @@ class GlobalConfiguration extends Configuration
             parent::__construct($configFile);
         } catch(NotAFileException $e) {
             $this->config = new \stdClass();
+            $this->setConfigOption(['config'], new \stdClass());
         }
     }
 
@@ -87,6 +88,14 @@ class GlobalConfiguration extends Configuration
         if(!is_dir($sshDir))
             throw new NotADirectoryException($sshDir);
         return $sshDir;
+    }
+
+    /**
+     * @param string $sshDir
+     */
+    public function setSshDirectory($sshDir)
+    {
+        $this->setConfigOption(['config', 'ssh-dir'], $sshDir);
     }
 
     /**

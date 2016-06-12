@@ -2,9 +2,11 @@
 
 namespace vierbergenlars\CliCentral\Configuration;
 
+use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
+use vierbergenlars\CliCentral\Exception\File\UnwritableFileException;
 use vierbergenlars\CliCentral\Exception\JsonValidationException;
-use vierbergenlars\CliCentral\Exception\NotAFileException;
-use vierbergenlars\CliCentral\Exception\UnreadableFileException;
+use vierbergenlars\CliCentral\Exception\File\NotAFileException;
+use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
 use JsonSchema\Validator;
 
 abstract class Configuration
@@ -62,14 +64,23 @@ abstract class Configuration
         return $this->config;
     }
 
-    protected function getConfigOption(array $path, $default = null)
+    /**
+     * @param array $path
+     * @param mixed $default
+     * @param bool $throws
+     * @return mixed
+     * @throws MissingConfigurationParameterException
+     */
+    protected function getConfigOption(array $path, $default = null, $throws = false)
     {
         $conf = $this->getConfig();
         while(($part = array_shift($path)) !== null) {
             if(isset($conf->{$part})) {
                 $conf = $conf->{$part};
             } else {
-                return $default;
+                if(!$throws||$default)
+                    return $default;
+                throw new MissingConfigurationParameterException(implode('.', $path));
             }
         }
         return $conf;

@@ -2,18 +2,9 @@
 
 namespace vierbergenlars\CliCentral\Command;
 
-use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
-use vierbergenlars\CliCentral\Exception\FileException;
-use vierbergenlars\CliCentral\Exception\FileExistsException;
-use vierbergenlars\CliCentral\Exception\NotADirectoryException;
-use vierbergenlars\CliCentral\Exception\NotAFileException;
-use vierbergenlars\CliCentral\Exception\NotEmptyException;
-use vierbergenlars\CliCentral\Helper\AppDirectoryHelper;
-use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProcessHelper;
 use Symfony\Component\Console\Helper\QuestionHelper;
-use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -22,6 +13,13 @@ use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Process\ProcessBuilder;
+use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
+use vierbergenlars\CliCentral\Exception\File\FileExistsException;
+use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
+use vierbergenlars\CliCentral\Exception\File\NotEmptyException;
+use vierbergenlars\CliCentral\Helper\AppDirectoryHelper;
+use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
+use vierbergenlars\CliCentral\Util;
 
 class CloneCommand extends Command
 {
@@ -57,7 +55,10 @@ class CloneCommand extends Command
 
         $repositoryConfiguration = $configHelper->getConfiguration()->getRepositoryConfiguration($input->getArgument('repository'));
 
-        list($repoUser, $repoHost, $repoUrl) = preg_split('/@|:/', $input->getArgument('repository'));
+        $repositoryParts = Util::parseRepositoryUrl($input->getArgument('repository'));
+        if(!Util::isSshRepositoryUrl($repositoryParts)) {
+            $input->setOption('no-deploy-key', true);
+        }
 
         /*
          * Create application directory
@@ -93,9 +94,7 @@ class CloneCommand extends Command
                         '--target-repository' => $input->getArgument('repository'),
                         '--print-public-key' => true,
                     ]), $output);
-                $repositoryConfiguration = $configHelper->getConfiguration()->getRepositoryConfiguration($input->getArgument('repository'));
-                if(!$repositoryConfiguration)
-                    throw new \UnexpectedValueException('Repository configuration was not persisted right.');
+                $repositoryConfiguration = $configHelper->getConfiguration()->getRepositoryConfiguration($input->getArgument('repository'), true);
             } catch(FileExistsException $ex) {
                 $repositoryConfiguration->setIdentityFile($ex->getFilename());
                 $stderr->writeln(sprintf('Key <info>%s</info> already exists. Not generating a new one.', $ex->getFilename()));
@@ -127,7 +126,7 @@ class CloneCommand extends Command
         $gitClone = ProcessBuilder::create([
             'git',
             'clone',
-            $repositoryConfiguration?($repositoryConfiguration->getSshAlias().':'.$repoUrl):$input->getArgument('repository'),
+            Util::replaceRepositoryUrl($repositoryParts, $repositoryConfiguration),
             $appDirectoryHelper->getDirectoryForApplication($input->getArgument('application')),
         ])->setTimeout(null)->getProcess();
         $processHelper->mustRun($stderr, $gitClone);

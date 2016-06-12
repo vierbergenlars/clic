@@ -2,10 +2,6 @@
 
 namespace vierbergenlars\CliCentral\Command;
 
-use vierbergenlars\CliCentral\ApplicationEnvironment\Application;
-use vierbergenlars\CliCentral\Exception\NoScriptException;
-use vierbergenlars\CliCentral\Exception\NotAFileException;
-use vierbergenlars\CliCentral\Helper\AppDirectoryHelper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProcessHelper;
 use Symfony\Component\Console\Input\InputArgument;
@@ -13,7 +9,10 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Process\ProcessBuilder;
+use vierbergenlars\CliCentral\ApplicationEnvironment\Application;
+use vierbergenlars\CliCentral\Exception\File\NotAFileException;
+use vierbergenlars\CliCentral\Exception\NoScriptException;
+use vierbergenlars\CliCentral\Helper\AppDirectoryHelper;
 
 class ExecCommand extends Command
 {

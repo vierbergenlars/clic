@@ -1,6 +1,6 @@
 <?php
 
-namespace vierbergenlars\CliCentral\Exception;
+namespace vierbergenlars\CliCentral\Exception\File;
 
 class NotEmptyException extends FileException
 {

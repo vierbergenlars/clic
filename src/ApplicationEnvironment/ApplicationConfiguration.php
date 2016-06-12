@@ -3,14 +3,8 @@
 namespace vierbergenlars\CliCentral\ApplicationEnvironment;
 
 use vierbergenlars\CliCentral\Configuration\Configuration;
-use vierbergenlars\CliCentral\Exception\JsonValidationException;
+use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
 use vierbergenlars\CliCentral\Exception\NoScriptException;
-use vierbergenlars\CliCentral\Exception\NotAFileException;
-use vierbergenlars\CliCentral\Exception\UnreadableFileException;
-use JsonSchema\Validator;
-use Symfony\Component\Process\Exception\ProcessFailedException;
-use Symfony\Component\Process\Process;
-use Symfony\Component\Process\ProcessBuilder;
 
 class ApplicationConfiguration extends Configuration
 {
@@ -22,12 +16,15 @@ class ApplicationConfiguration extends Configuration
     /**
      * @param string $scriptName
      * @return string
+     * @throws NoScriptException
      */
     public function getScriptCommand($scriptName)
     {
-        $script = $this->getConfigOption(['scripts', $scriptName]);
-        if($script === null)
-            throw new NoScriptException($scriptName);
+        try {
+            $script = $this->getConfigOption(['scripts', $scriptName], null, true);
+        } catch(MissingConfigurationParameterException $ex) {
+            throw new NoScriptException($scriptName, $ex);
+        }
         return $script;
     }
 }

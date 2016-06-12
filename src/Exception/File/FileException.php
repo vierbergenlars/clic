@@ -1,12 +1,12 @@
 <?php
 
-namespace vierbergenlars\CliCentral\Exception;
+namespace vierbergenlars\CliCentral\Exception\File;
 
 use Exception;
 
-class FileException extends \RuntimeException
+abstract class FileException extends \RuntimeException
 {
-    protected $template = '"%s"';
+    protected $template = '%s';
 
     /**
      * @var string

@@ -3,8 +3,8 @@
 namespace vierbergenlars\CliCentral\ApplicationEnvironment;
 
 use vierbergenlars\CliCentral\Exception\NoScriptException;
-use vierbergenlars\CliCentral\Exception\NotAFileException;
-use vierbergenlars\CliCentral\Exception\UnreadableFileException;
+use vierbergenlars\CliCentral\Exception\File\NotAFileException;
+use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
 use Symfony\Component\Process\Process;
 
 class Application

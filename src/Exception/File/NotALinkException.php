@@ -1,6 +1,6 @@
 <?php
 
-namespace vierbergenlars\CliCentral\Exception;
+namespace vierbergenlars\CliCentral\Exception\File;
 
 class NotALinkException extends FileException
 {

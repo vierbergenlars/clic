@@ -2,7 +2,6 @@
 
 namespace vierbergenlars\CliCentral\Configuration;
 
-
 class RepositoryConfiguration
 {
     private $config;

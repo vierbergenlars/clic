@@ -2,11 +2,13 @@
 
 namespace vierbergenlars\CliCentral\Helper;
 
+use Symfony\Component\Console\Exception\InvalidOptionException;
 use vierbergenlars\CliCentral\Configuration\GlobalConfiguration;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Helper\Helper;
 use Symfony\Component\Console\Input\InputAwareInterface;
 use Symfony\Component\Console\Input\InputInterface;
+use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 
 class GlobalConfigurationHelper extends Helper implements InputAwareInterface
 {
@@ -42,8 +44,12 @@ class GlobalConfigurationHelper extends Helper implements InputAwareInterface
 
     public function getConfiguration()
     {
-        if(!$this->globalConfiguration)
-            $this->globalConfiguration = new GlobalConfiguration(new \SplFileInfo($this->input->getOption('config')));
+        if(!$this->globalConfiguration) {
+            $configFile = $this->input->getOption('config');
+            if(!$configFile)
+                throw new InvalidOptionException('Missing configuration file (--config|-c)');
+            $this->globalConfiguration = new GlobalConfiguration(new \SplFileInfo($configFile));
+        }
         return $this->globalConfiguration;
     }
 }

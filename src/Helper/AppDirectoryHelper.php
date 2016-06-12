@@ -4,8 +4,9 @@ namespace vierbergenlars\CliCentral\Helper;
 
 use vierbergenlars\CliCentral\ApplicationEnvironment\Environment;
 use vierbergenlars\CliCentral\Configuration\GlobalConfiguration;
-use vierbergenlars\CliCentral\Exception\NotADirectoryException;
-use vierbergenlars\CliCentral\Exception\NotALinkException;
+use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
+use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
+use vierbergenlars\CliCentral\Exception\File\NotALinkException;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Helper\Helper;
 use Symfony\Component\Console\Input\InputAwareInterface;
@@ -41,13 +42,9 @@ class AppDirectoryHelper extends Helper implements InputAwareInterface
     public function getEnvironment()
     {
         $baseDir = $this->getConfiguration()->getApplicationsDirectory();
-        if(!$baseDir)
-            throw new InvalidArgumentException('The applications-dir option does not have a value.');
         $environment = $this->input->getOption('env');
         if(!$environment)
             throw new InvalidArgumentException('The environment option does not have a value.');
-        if(!is_dir($baseDir))
-            throw new NotADirectoryException($baseDir);
         $envDir = $baseDir.'/'.$environment;
         if(!is_dir($envDir))
             throw new NotADirectoryException($envDir);
@@ -56,30 +53,12 @@ class AppDirectoryHelper extends Helper implements InputAwareInterface
 
     public function getDirectoryForApplication($applicationName)
     {
-        $baseDir = $this->getConfiguration()->getApplicationsDirectory();
-        if(!$baseDir)
-            throw new InvalidArgumentException('The applications-dir option does not have a value.');
-        $environment = $this->input->getOption('env');
-        if(!$environment)
-            throw new InvalidArgumentException('The environment option does not have a value.');
-
-        if(!is_dir($baseDir))
-            throw new NotADirectoryException($baseDir);
-        $envDir = $baseDir.'/'.$environment;
-        if(!is_dir($envDir))
-            throw new NotADirectoryException($envDir);
-        $fullDir = $envDir.'/'.$applicationName;
-        if(!is_dir($fullDir))
-            throw new NotADirectoryException($fullDir);
-
-        return $fullDir;
+        return $this->getEnvironment()->getApplicationDirectory($applicationName)->getPathname();
     }
 
     public function getLinkForVhost($vhostName)
     {
         $baseDir = $this->getConfiguration()->getVhostsDirectory();
-        if(!$baseDir)
-            throw new InvalidArgumentException('The vhosts-dir option does not have a value.');
         if(!is_dir($baseDir))
             throw new NotADirectoryException($baseDir);
         $linkName = $baseDir.'/'.$vhostName;

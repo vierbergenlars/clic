@@ -2,7 +2,10 @@
 
 namespace vierbergenlars\CliCentral\Configuration;
 
-use vierbergenlars\CliCentral\Exception\NotAFileException;
+use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
+use vierbergenlars\CliCentral\Exception\Configuration\NoSuchRepositoryException;
+use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
+use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 
 class GlobalConfiguration extends Configuration
 {
@@ -21,11 +24,16 @@ class GlobalConfiguration extends Configuration
     }
 
     /**
-     * @return string|null
+     * @return string
+     * @throws MissingConfigurationParameterException
+     * @throws NotADirectoryException
      */
     public function getApplicationsDirectory()
     {
-        return $this->getConfigOption(['config', 'applications-dir'], getenv('HOME')?getenv('HOME').'/apps': null);
+        $appDir = $this->getConfigOption(['config', 'applications-dir'], getenv('HOME')?getenv('HOME').'/apps': null, true);
+        if(!is_dir($appDir))
+            throw new NotADirectoryException($appDir);
+        return $appDir;
     }
 
     public function setApplicationsDirectory($applicationsDir)
@@ -34,11 +42,16 @@ class GlobalConfiguration extends Configuration
     }
 
     /**
-     * @return string|null
+     * @return string
+     * @throws MissingConfigurationParameterException
+     * @throws NotADirectoryException
      */
     public function getVhostsDirectory()
     {
-        return $this->getConfigOption(['config', 'vhosts-dir'], getenv('HOME')?getenv('HOME').'/public_html':null);
+        $vhostDir = $this->getConfigOption(['config', 'vhosts-dir'], getenv('HOME')?getenv('HOME').'/public_html':null, true);
+        if(!is_dir($vhostDir))
+            throw new NotADirectoryException($vhostDir);
+        return $vhostDir;
     }
 
     public function setVhostsDirectory($vhostsDir)
@@ -47,23 +60,42 @@ class GlobalConfiguration extends Configuration
     }
 
     /**
-     * @return string|null
+     * @return string
+     * @throws NotADirectoryException
+     * @throws MissingConfigurationParameterException
      */
     public function getSshDirectory()
     {
-        return $this->getConfigOption(['config', 'ssh-dir'], getenv('HOME')?getenv('HOME').'/.ssh':null);
+        $sshDir = $this->getConfigOption(['config', 'ssh-dir'], getenv('HOME')?getenv('HOME').'/.ssh':null, true);
+        if(!is_dir($sshDir))
+            throw new NotADirectoryException($sshDir);
+        return $sshDir;
+    }
+
+    /**
+     * @return RepositoryConfiguration[]
+     */
+    public function getRepositoryConfigurations()
+    {
+        return array_map(function($config) {
+            return new RepositoryConfiguration($config);
+        }, (array)$this->getConfigOption(['repositories'], []));
+
     }
 
     /**
      * @param $repositoryName
      * @return RepositoryConfiguration|null
+     *
      */
-    public function getRepositoryConfiguration($repositoryName)
+    public function getRepositoryConfiguration($repositoryName, $throws = false)
     {
         $config = $this->getConfigOption(['repositories', $repositoryName]);
-        if(!$config)
-            return null;
-        return new RepositoryConfiguration($config);
+        if($config)
+            return new RepositoryConfiguration($config);
+        if($throws)
+            throw new NoSuchRepositoryException($repositoryName);
+        return null;
     }
 
     public function setRepositoryConfiguration($repositoryName, RepositoryConfiguration $conf)

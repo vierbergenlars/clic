@@ -2,7 +2,7 @@
 
 namespace vierbergenlars\CliCentral\ApplicationEnvironment;
 
-use vierbergenlars\CliCentral\Exception\NotADirectoryException;
+use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
 use Symfony\Component\Finder\Finder;
 
 class Environment
@@ -55,16 +55,26 @@ class Environment
         return $applications;
     }
 
+    /**
+     * @param string $appName
+     * @return \SplFileInfo
+     * @throws NotADirectoryException
+     */
     public function getApplicationDirectory($appName)
     {
-        return new \SplFileInfo($this->baseDir.'/'.$appName);
+        $fileInfo = new \SplFileInfo($this->baseDir.'/'.$appName);
+        if(!$fileInfo->isDir())
+            throw new NotADirectoryException($fileInfo);
+        return $fileInfo;
     }
 
+    /**
+     * @param string $appName
+     * @return Application
+     * @throws NotADirectoryException
+     */
     public function getApplication($appName)
     {
-        $appDir = $this->getApplicationDirectory($appName);
-        if(!$appDir->isDir())
-            throw new NotADirectoryException($appDir);
-        return new Application($this, $appDir);
+        return new Application($this, $this->getApplicationDirectory($appName));
     }
 }

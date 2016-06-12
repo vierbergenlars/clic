@@ -3,7 +3,6 @@
 namespace vierbergenlars\CliCentral\Command\SshKey;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Helper\ProcessHelper;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
@@ -12,9 +11,12 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\ProcessBuilder;
-use vierbergenlars\CliCentral\Exception\FileExistsException;
-use vierbergenlars\CliCentral\Exception\NotADirectoryException;
+use vierbergenlars\CliCentral\Exception\Configuration\NoSshRepositoryException;
+use vierbergenlars\CliCentral\Exception\Configuration\RepositoryExistsException;
+use vierbergenlars\CliCentral\Exception\File\FileExistsException;
+use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
+use vierbergenlars\CliCentral\Util;
 
 class GenerateCommand extends Command
 {
@@ -35,10 +37,11 @@ class GenerateCommand extends Command
             /* @var $configHelper GlobalConfigurationHelper */
             $repoConfig = $configHelper->getConfiguration()->getRepositoryConfiguration($input->getOption('target-repository'));
             if($repoConfig)
-                throw new InvalidArgumentException(sprintf('Repository "%s" is already configured', $input->getOption('target-repository')));
+                throw new RepositoryExistsException($input->getOption('target-repository'));
+            if(!Util::isSshRepositoryUrl($input->getOption('target-repository')))
+                throw new NoSshRepositoryException($input->getOption('target-repository'));
         }
     }
-
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -52,8 +55,6 @@ class GenerateCommand extends Command
             $stderr = $output;
 
         $sshDir = $configHelper->getConfiguration()->getSshDirectory();
-        if(!is_dir($sshDir))
-            throw new NotADirectoryException($sshDir);
 
         $keyFile = new \SplFileInfo($input->getArgument('key')?:($sshDir.'/id_rsa-'.sha1(mt_rand().time())));
         // Check if file already exists

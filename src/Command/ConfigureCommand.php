@@ -2,7 +2,8 @@
 
 namespace vierbergenlars\CliCentral\Command;
 
-use vierbergenlars\CliCentral\Exception\NotADirectoryException;
+use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
+use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\InvalidOptionException;
@@ -28,7 +29,13 @@ class ConfigureCommand extends Command
         $questionHelper = $this->getHelper('question');
         /* @var $questionHelper QuestionHelper */
 
-        $question = new Question('Where are your application environments located?', $configHelper->getConfiguration()->getApplicationsDirectory());
+
+        try {
+            $appDir = $configHelper->getConfiguration()->getApplicationsDirectory();
+        } catch(MissingConfigurationParameterException $ex) {
+            $appDir = null;
+        }
+        $question = new Question('Where are your application environments located?', $appDir);
         $question->setValidator(function($dir) {
             if(!is_dir($dir))
                 if(!@mkdir($dir, 0777, true))
@@ -37,7 +44,12 @@ class ConfigureCommand extends Command
         });
         $configHelper->getConfiguration()->setApplicationsDirectory($questionHelper->ask($input, $output, $question));
 
-        $question = new Question('Where is your webserver root located?', $configHelper->getConfiguration()->getVhostsDirectory());
+        try {
+            $vhostsDir = $configHelper->getConfiguration()->getVhostsDirectory();
+        } catch(MissingConfigurationParameterException $ex) {
+            $vhostsDir = null;
+        }
+        $question = new Question('Where is your webserver root located?', $vhostsDir);
         $question->setValidator(function($dir) {
             if(!is_dir($dir))
                 if(!@mkdir($dir, 0777, true))

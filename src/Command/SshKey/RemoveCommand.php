@@ -3,16 +3,15 @@
 namespace vierbergenlars\CliCentral\Command\SshKey;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
-use vierbergenlars\CliCentral\Exception\NotADirectoryException;
-use vierbergenlars\CliCentral\Exception\NotAFileException;
-use vierbergenlars\CliCentral\Exception\UnreadableFileException;
-use vierbergenlars\CliCentral\Exception\UnwritableFileException;
+use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
+use vierbergenlars\CliCentral\Exception\File\NotAFileException;
+use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
+use vierbergenlars\CliCentral\Exception\File\UnwritableFileException;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
 class RemoveCommand extends Command
@@ -31,9 +30,7 @@ class RemoveCommand extends Command
         $questionHelper = $this->getHelper('question');
         /* @var $questionHelper QuestionHelper */
 
-        $repositoryConfig = $configHelper->getConfiguration()->getRepositoryConfiguration($input->getArgument('repository'));
-        if (!$repositoryConfig)
-            throw new InvalidArgumentException(sprintf('Repository "%s" is not configured.', $input->getArgument('repository')));
+        $repositoryConfig = $configHelper->getConfiguration()->getRepositoryConfiguration($input->getArgument('repository'), true);
 
         if (!$questionHelper->ask($input, $output, new ConfirmationQuestion(sprintf('Are you sure you want to remove the ssh key for "%s"? This action is irreversible.', $input->getArgument('repository')))))
             return 1;
@@ -41,9 +38,6 @@ class RemoveCommand extends Command
         $sshKeyFile = $repositoryConfig->getIdentityFile();
         $this->unlinkFile($output, $sshKeyFile);
         $this->unlinkFile($output, $sshKeyFile.'.pub');
-
-        if(!file_exists($configHelper->getConfiguration()->getSshDirectory()))
-            throw new NotADirectoryException($configHelper->getConfiguration()->getSshDirectory());
 
         $sshConfig = new \SplFileInfo($configHelper->getConfiguration()->getSshDirectory() . '/config');
         if (!$sshConfig->isFile())
@@ -59,7 +53,7 @@ class RemoveCommand extends Command
             if (rtrim($sshConfigLines[$i]) == 'Host ' . $repositoryConfig->getSshAlias()) {
                 do {
                     unset($sshConfigLines[$i++]);
-                } while (isset($sshConfigLines[$i]) && stripos($sshConfigLines[$i], 'Host ') !== 0);
+                } while (isset($sshConfigLines[$i]) && stripos($sshConfigLines[$i], 'Host ') !== 0 && stripos($sshConfigLines[$i], 'Match ') !== 0);
                 $output->writeln(sprintf('Removed section <info>Host %s</info> from <info>%s</info>',$repositoryConfig->getSshAlias(), $sshConfig->getPathname()));
                 break;
             }

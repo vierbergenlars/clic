@@ -3,17 +3,19 @@
 namespace vierbergenlars\CliCentral\Command\SshKey;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
-use vierbergenlars\CliCentral\Exception\NotADirectoryException;
-use vierbergenlars\CliCentral\Exception\NotAFileException;
-use vierbergenlars\CliCentral\Exception\UnreadableFileException;
-use vierbergenlars\CliCentral\Exception\UnwritableFileException;
+use vierbergenlars\CliCentral\Exception\Configuration\NoSshRepositoryException;
+use vierbergenlars\CliCentral\Exception\Configuration\RepositoryExistsException;
+use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
+use vierbergenlars\CliCentral\Exception\File\NotAFileException;
+use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
+use vierbergenlars\CliCentral\Exception\File\UnwritableFileException;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
+use vierbergenlars\CliCentral\Util;
 
 class AddCommand extends Command
 {
@@ -33,7 +35,9 @@ class AddCommand extends Command
 
         $repositoryConfig = $configHelper->getConfiguration()->getRepositoryConfiguration($input->getArgument('repository'));
         if($repositoryConfig)
-            throw new InvalidArgumentException(sprintf('Repository "%s" is already configured.', $input->getArgument('repository')));
+            throw new RepositoryExistsException($input->getArgument('repository'));
+        if(!Util::isSshRepositoryUrl($input->getArgument('repository')))
+            throw new NoSshRepositoryException($input->getArgument('repository'));
 
         $repositoryConfig = new RepositoryConfiguration();
         $repositoryConfig->setSshAlias($input->getOption('alias')?:sha1($input->getArgument('repository').time()));
@@ -43,10 +47,9 @@ class AddCommand extends Command
 
         $repositoryConfig->setIdentityFile($sshKeyFile->getRealPath());
 
-        if(!file_exists($configHelper->getConfiguration()->getSshDirectory()))
-            throw new NotADirectoryException($configHelper->getConfiguration()->getSshDirectory());
-
         $sshConfigFile = new \SplFileInfo($configHelper->getConfiguration()->getSshDirectory() . '/config');
+        if(!file_exists($sshConfigFile->getPathname()))
+            @touch($sshConfigFile->getPathname());
         if (!$sshConfigFile->isFile())
             throw new NotAFileException($sshConfigFile);
         if (!$sshConfigFile->isReadable())

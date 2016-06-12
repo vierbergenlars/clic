@@ -3,12 +3,10 @@
 namespace vierbergenlars\CliCentral\Helper;
 
 use Symfony\Component\Console\Exception\InvalidOptionException;
-use vierbergenlars\CliCentral\Configuration\GlobalConfiguration;
-use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Helper\Helper;
 use Symfony\Component\Console\Input\InputAwareInterface;
 use Symfony\Component\Console\Input\InputInterface;
-use vierbergenlars\CliCentral\Exception\File\NotAFileException;
+use vierbergenlars\CliCentral\Configuration\GlobalConfiguration;
 
 class GlobalConfigurationHelper extends Helper implements InputAwareInterface
 {

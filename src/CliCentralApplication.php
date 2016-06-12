@@ -46,7 +46,10 @@ class CliCentralApplication extends Application
     protected function getDefaultCommands()
     {
         return array_merge(parent::getDefaultCommands(), [
-            new Command\ConfigureCommand(),
+            new Command\Config\InitCommand(),
+            new Command\Config\SetCommand(),
+            new Command\Config\UnsetCommand(),
+            new Command\Config\GetCommand(),
             new Command\CloneCommand(),
             new Command\ExecCommand(),
             new Command\SshKey\RemoveCommand(),

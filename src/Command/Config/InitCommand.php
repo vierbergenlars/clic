@@ -1,6 +1,6 @@
 <?php
 
-namespace vierbergenlars\CliCentral\Command;
+namespace vierbergenlars\CliCentral\Command\Config;
 
 use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
 use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
@@ -12,11 +12,11 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 
-class ConfigureCommand extends Command
+class InitCommand extends Command
 {
     protected function configure()
     {
-        $this->setName('configure');
+        $this->setName('config:init');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -30,6 +30,9 @@ class ConfigureCommand extends Command
         /* @var $questionHelper QuestionHelper */
 
 
+        /*
+         * Applications directory
+         */
         try {
             $appDir = $configHelper->getConfiguration()->getApplicationsDirectory();
         } catch(MissingConfigurationParameterException $ex) {
@@ -44,6 +47,9 @@ class ConfigureCommand extends Command
         });
         $configHelper->getConfiguration()->setApplicationsDirectory($questionHelper->ask($input, $output, $question));
 
+        /*
+         * Vhosts directory
+         */
         try {
             $vhostsDir = $configHelper->getConfiguration()->getVhostsDirectory();
         } catch(MissingConfigurationParameterException $ex) {

@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
+  "required": ["web-dir"],
   "properties": {
     "scripts": {
       "type": "object",
@@ -14,6 +15,10 @@
           }
         }
       }
+    },
+    "web-dir": {
+      "type": "string",
+      "description": "Relative directory that contains files to be published as website"
     }
   }
 }

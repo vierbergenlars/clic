@@ -2,6 +2,7 @@
 
 namespace vierbergenlars\CliCentral\ApplicationEnvironment;
 
+use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
 use vierbergenlars\CliCentral\Exception\NoScriptException;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
@@ -62,14 +63,27 @@ class Application
     public function getScriptProcess($scriptName)
     {
         try {
-            return new Process($this->getConfiguration()->getScriptCommand($scriptName), $this->baseDir->getPathname(), [
+            $env = [];
+            foreach($_SERVER as $key=>$value) {
+                $ev = getenv($key);
+                if($ev)
+                    $env[$key] = $ev;
+            }
+            return new Process($this->getConfiguration()->getScriptCommand($scriptName), $this->baseDir->getPathname(), array_merge($env, [
                 'CLIC_ENV' => $this->environment->getName(),
                 'CLIC_NONINTERACTIVE' => '1',
-                'PATH' => getenv('PATH'),
-            ], null, null);
+            ]), null, null);
         } catch(NoScriptException $ex) {
             throw new NoScriptException($this->getName().':'.$scriptName);
         }
+    }
+
+    public function getWebDirectory()
+    {
+        $webDir = new \SplFileInfo($this->baseDir->getPathname().'/'.$this->getConfiguration()->getWebDir());
+        if(!$webDir->isDir())
+            throw new NotADirectoryException($webDir);
+        return $webDir;
     }
 
 }

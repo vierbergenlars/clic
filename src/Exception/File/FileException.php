@@ -18,12 +18,18 @@ abstract class FileException extends \RuntimeException
      * @param string|\SplFileInfo $filename
      * @param Exception|null $previous
      */
-    public function __construct($filename, Exception $previous = null)
+    public function __construct($filename, Exception $previous = null, $extraArgs = [])
     {
         if($filename instanceof \SplFileInfo)
             $filename = $filename->getPathname();
         $this->filename = $filename;
-        parent::__construct(sprintf($this->template, $filename), 0, $previous);
+        if($extraArgs === []) {
+            parent::__construct(sprintf($this->template, $filename), 0, $previous);
+        } else {
+            array_unshift($extraArgs, $filename);
+            array_unshift($extraArgs, $this->template);
+            parent::__construct(call_user_func_array('sprintf', $extraArgs), 0, $previous);
+        }
     }
 
     /**

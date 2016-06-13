@@ -27,4 +27,10 @@ class ApplicationConfiguration extends Configuration
         }
         return $script;
     }
+
+    public function getWebDir()
+    {
+        return $this->getConfigOption(['web-dir'], null, true);
+    }
+
 }

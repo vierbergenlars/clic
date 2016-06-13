@@ -5,18 +5,32 @@
   "required": ["config"],
   "properties": {
     "vhosts": {
-      "type": "array",
-      "required": ["application", "symlink"],
+      "type": "object",
+      "description": "Links a vhost name (keys) to settings (values)",
       "additionalProperties": false,
-      "items": {
-        "type": "object",
-        "description": "Links a vhost symlink name to an application",
-        "properties": {
-          "application": {
-            "type": "string"
-          },
-          "symlink": {
-            "type": "string"
+      "patternProperties": {
+        ".*": {
+          "type": "object",
+          "description": "Vhost settings",
+          "required": ["application", "link", "target", "environment"],
+          "additionalProperties": false,
+          "properties": {
+            "application": {
+              "type": "string"
+            },
+            "link": {
+              "type": "string"
+            },
+            "target": {
+              "type": "string"
+            },
+            "environment": {
+              "type": "string"
+            },
+            "disabled": {
+              "type": "boolean",
+              "default": false
+            }
           }
         }
       }

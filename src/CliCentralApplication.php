@@ -56,6 +56,12 @@ class CliCentralApplication extends Application
             new Command\SshKey\AddCommand(),
             new Command\SshKey\GenerateCommand(),
             new Command\SshKey\ShowCommand(),
+            new Command\Vhost\AddCommand(),
+            new Command\Vhost\RemoveCommand(),
+            new Command\Vhost\ShowCommand(),
+            new Command\Vhost\FixCommand(),
+            new Command\Vhost\DisableCommand(),
+            new Command\Vhost\EnableCommand(),
         ]);
     }
 }

@@ -4,6 +4,7 @@ namespace vierbergenlars\CliCentral\Configuration;
 
 use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSuchRepositoryException;
+use vierbergenlars\CliCentral\Exception\Configuration\NoSuchVhostException;
 use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 
@@ -131,5 +132,30 @@ class GlobalConfiguration extends Configuration
     public function removeRepositoryConfiguration($repositoryName)
     {
         $this->removeConfigOption(['repositories', $repositoryName]);
+    }
+
+    public function getVhostConfigurations()
+    {
+        return array_map(function($config) {
+            return new VhostConfiguration($config);
+        }, (array)$this->getConfigOption(['vhosts'], []));
+    }
+
+    public function getVhostConfiguration($vhostName)
+    {
+        $config = $this->getConfigOption(['vhosts', $vhostName]);
+        if($config)
+            return new VhostConfiguration($config);
+        throw new NoSuchVhostException($vhostName);
+    }
+
+    public function setVhostConfiguration($vhostName, VhostConfiguration $conf)
+    {
+        $this->setConfigOption(['vhosts', $vhostName], $conf->getConfig());
+    }
+
+    public function removeVhostConfiguration($vhostName)
+    {
+        $this->removeConfigOption(['vhosts', $vhostName]);
     }
 }

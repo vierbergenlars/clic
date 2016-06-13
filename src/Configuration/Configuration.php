@@ -31,7 +31,10 @@ abstract class Configuration
     {
         $this->initConfig();
         $validator = new Validator();
-        $validator->check($this->config, $this->getSchema());
+        $schema = $this->getSchema();
+        if(!$schema)
+            throw new \InvalidArgumentException('JSON schema is invalid.');
+        $validator->check($this->config, $schema);
         if(!$validator->isValid()) {
             $errors = array();
             foreach ($validator->getErrors() as $error) {

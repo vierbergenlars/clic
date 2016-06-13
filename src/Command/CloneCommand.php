@@ -68,7 +68,7 @@ class CloneCommand extends Command
                 $appDirectoryHelper->getDirectoryForApplication($input->getArgument('application'));
                 $notSucceeded = false;
             } catch(NotADirectoryException $ex) {
-                mkdir($ex->getFilename());
+                mkdir($ex->getFilename(), 0777, true);
                 $stderr->writeln(sprintf('Created directory <info>%s</info>', $ex->getFilename()), OutputInterface::VERBOSITY_VERY_VERBOSE);
                 $notSucceeded = true;
             }

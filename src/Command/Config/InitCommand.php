@@ -2,7 +2,9 @@
 
 namespace vierbergenlars\CliCentral\Command\Config;
 
+use Symfony\Component\Console\Input\InputOption;
 use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
+use vierbergenlars\CliCentral\Exception\File\FileException;
 use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use Symfony\Component\Console\Command\Command;
@@ -16,69 +18,68 @@ class InitCommand extends Command
 {
     protected function configure()
     {
-        $this->setName('config:init');
+        $this->setName('config:init')
+            ->addOption('no-create-missing', null, InputOption::VALUE_NONE, 'Do not create missing directories')
+        ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $configHelper = $this->getHelper('configuration');
         /* @var $configHelper GlobalConfigurationHelper */
-        $questionHelper = $this->getHelper('question');
-        /* @var $questionHelper QuestionHelper */
 
+        $this->askDirectoryQuestion(
+            [$configHelper->getConfiguration(), 'getApplicationsDirectory'],
+            [$configHelper->getConfiguration(), 'setApplicationsDirectory'],
+            'Where are your application environments located?',
+            $input,
+            $output
+        );
 
-        /*
-         * Applications directory
-         */
-        try {
-            $appDir = $configHelper->getConfiguration()->getApplicationsDirectory();
-        } catch(MissingConfigurationParameterException $ex) {
-            $appDir = null;
-        }
-        $question = new Question('Where are your application environments located?', $appDir);
-        $question->setValidator(function($dir) {
-            if(!is_dir($dir))
-                if(!@mkdir($dir, 0777, true))
-                    throw new NotADirectoryException($dir);
-            return $dir;
-        });
-        $configHelper->getConfiguration()->setApplicationsDirectory($questionHelper->ask($input, $output, $question));
+        $this->askDirectoryQuestion(
+            [$configHelper->getConfiguration(), 'getVhostsDirectory'],
+            [$configHelper->getConfiguration(), 'setVhostsDirectory'],
+            'Where is your webserver root located?',
+            $input,
+            $output
+        );
 
-        /*
-         * Vhosts directory
-         */
-        try {
-            $vhostsDir = $configHelper->getConfiguration()->getVhostsDirectory();
-        } catch(MissingConfigurationParameterException $ex) {
-            $vhostsDir = null;
-        }
-        $question = new Question('Where is your webserver root located?', $vhostsDir);
-        $question->setValidator(function($dir) {
-            if(!is_dir($dir))
-                if(!@mkdir($dir, 0777, true))
-                    throw new NotADirectoryException($dir);
-            return $dir;
-        });
-        $configHelper->getConfiguration()->setVhostsDirectory($questionHelper->ask($input, $output, $question));
+        $this->askDirectoryQuestion(
+            [$configHelper->getConfiguration(), 'getSshDirectory'],
+            [$configHelper->getConfiguration(), 'setSshDirectory'],
+            'Where is your .ssh directory located?',
+            $input,
+            $output
+        );
 
-        /*
-         * .shh directory
-         */
-        try {
-            $sshDir = $configHelper->getConfiguration()->getSshDirectory();
-        } catch(MissingConfigurationParameterException $ex) {
-            $sshDir = null;
-        }
-        $question = new Question('Where is your .ssh directory located?', $sshDir);
-        $question->setValidator(function($dir) {
-            if(!is_dir($dir))
-                if(!@mkdir($dir, 0777, true))
-                    throw new NotADirectoryException($dir);
-            return $dir;
-        });
-        $configHelper->getConfiguration()->setSshDirectory($questionHelper->ask($input, $output, $question));
         $configHelper->getConfiguration()->write();
 
         $output->writeln(sprintf('<comment>Settings written to <info>%s</info></comment>', $configHelper->getConfiguration()->getConfigFile()));
+    }
+
+    private function askDirectoryQuestion(callable $getter, callable $setter, $questionText, InputInterface $input, OutputInterface $output)
+    {
+        try {
+            $directory = $getter();
+        } catch(MissingConfigurationParameterException $ex) {
+            $directory = null;
+        } catch(FileException $ex) {
+            $directory = $ex->getFilename();
+        }
+        $question = new Question($questionText, $directory);
+        $question->setValidator(function($dir) use ($input, $output) {
+            if(!is_dir($dir))
+                if($input->getOption('no-create-missing')||!@mkdir($dir, 0777, true))
+                    throw new NotADirectoryException($dir);
+                else
+                    $output->writeln(sprintf('Created directory <info>%s</info>', $dir), OutputInterface::VERBOSITY_VERBOSE);
+            return $dir;
+        });
+        $questionHelper = $this->getHelper('question');
+        /* @var $questionHelper QuestionHelper */
+        $dirAnswer = $questionHelper->ask($input, $output, $question);
+        $validator = $question->getValidator();
+        $dirAnswer = $validator($dirAnswer);
+        $setter($dirAnswer);
     }
 }

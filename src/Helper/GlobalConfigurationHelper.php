@@ -21,6 +21,11 @@ class GlobalConfigurationHelper extends Helper implements InputAwareInterface
     private $globalConfiguration;
 
     /**
+     * @var DirectoryHelper
+     */
+    private $directoryHelper;
+
+    /**
      * Returns the canonical name of this helper.
      *
      * @return string The canonical name
@@ -49,5 +54,12 @@ class GlobalConfigurationHelper extends Helper implements InputAwareInterface
             $this->globalConfiguration = new GlobalConfiguration(new \SplFileInfo($configFile));
         }
         return $this->globalConfiguration;
+    }
+
+    public function getDirectoryHelper()
+    {
+        if(!$this->directoryHelper)
+            $this->directoryHelper = new DirectoryHelper($this->getConfiguration());
+        return $this->directoryHelper;
     }
 }

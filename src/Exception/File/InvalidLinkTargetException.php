@@ -6,6 +6,12 @@ class InvalidLinkTargetException extends FileException
 {
     protected $template = '"%s" is a symlink to "%s", but was expected to link to "%s".';
 
+    /**
+     * InvalidLinkTargetException constructor.
+     * @param \SplFileInfo|string $linkName
+     * @param \SplFileInfo|string $expectedTarget
+     * @param \Exception|null $previous
+     */
     public function __construct($linkName, $expectedTarget, \Exception $previous = null)
     {
         if(!is_link($linkName))

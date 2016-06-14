@@ -12,7 +12,7 @@ use vierbergenlars\CliCentral\Exception\Configuration\NoSuchVhostException;
 use vierbergenlars\CliCentral\Exception\Configuration\VhostExistsException;
 use vierbergenlars\CliCentral\Exception\File\FileExistsException;
 use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
-use vierbergenlars\CliCentral\Helper\AppDirectoryHelper;
+use vierbergenlars\CliCentral\Helper\DirectoryHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
 class AddCommand extends Command
@@ -29,8 +29,8 @@ class AddCommand extends Command
     {
         $configHelper = $this->getHelper('configuration');
         /* @var $configHelper GlobalConfigurationHelper */
-        $appDirectoryHelper = $this->getHelper('app_directory');
-        /* @var $appDirectoryHelper AppDirectoryHelper */
+        $directoryHelper = $configHelper->getDirectoryHelper();
+        /* @var $directoryHelper DirectoryHelper */
 
         if($output instanceof ConsoleOutputInterface) {
             $stderr = $output->getErrorOutput();
@@ -48,7 +48,7 @@ class AddCommand extends Command
 
         do {
             try {
-                $vhostLink = $appDirectoryHelper->getLinkForVhost($input->getArgument('vhost'));
+                $vhostLink = $directoryHelper->getLinkForVhost($input->getArgument('vhost'));
                 if(is_link($vhostLink))
                     throw new FileExistsException($vhostLink);
                 $notSucceeded = false;
@@ -62,12 +62,11 @@ class AddCommand extends Command
         if(!$vhostLink)
             throw new \LogicException('Could not find vhost link name');
 
-        $application = $appDirectoryHelper->getEnvironment()->getApplication($input->getArgument('application'));
+        $application = $directoryHelper->getApplication($input->getArgument('application'));
         $webDir = $application->getWebDirectory();
 
         $vhostConfig = new VhostConfiguration();
         $vhostConfig->setApplication($input->getArgument('application'));
-        $vhostConfig->setEnvironment($appDirectoryHelper->getEnvironment()->getName());
         $vhostConfig->setTarget($webDir);
         $vhostConfig->setLink($vhostLink);
 

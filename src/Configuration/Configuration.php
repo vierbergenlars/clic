@@ -115,6 +115,7 @@ abstract class Configuration
         unset($c->{$lastPart});
         $this->config = $conf;
     }
+
     abstract protected function getSchema();
 
     public function write()

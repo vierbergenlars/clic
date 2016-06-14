@@ -2,15 +2,9 @@
 
 namespace vierbergenlars\CliCentral\Command\Vhost;
 
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Process\Exception\ProcessFailedException;
-use Symfony\Component\Process\ProcessBuilder;
-use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
 use vierbergenlars\CliCentral\Configuration\VhostConfiguration;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
@@ -32,7 +26,6 @@ class ShowCommand extends AbstractMultiVhostsCommand
             $vhostConfig = current($input->getArgument('vhosts'));
             /* @var $vhostConfig VhostConfiguration */
             $output->writeln(sprintf('Application: <info>%s</info>', $vhostConfig->getApplication()));
-            $output->writeln(sprintf('Environment: <comment>%s</comment>', $vhostConfig->getEnvironment()));
             $vhostLink = $vhostConfig->getLink();
             $vhostTarget = $vhostConfig->getTarget();
             $messages = [sprintf('Link: %s', $vhostConfig->getLink())];
@@ -54,7 +47,7 @@ class ShowCommand extends AbstractMultiVhostsCommand
                 /* @var $vhostConfig VhostConfiguration */
                 $table->addRow([
                     $vhost,
-                    sprintf('%s (<comment>%s</comment>)', $vhostConfig->getApplication(), $vhostConfig->getEnvironment()),
+                    $vhostConfig->getApplication(),
                     $this->getStatusMessage($vhostConfig)
                 ]);
             }

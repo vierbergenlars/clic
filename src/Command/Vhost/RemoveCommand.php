@@ -2,20 +2,14 @@
 
 namespace vierbergenlars\CliCentral\Command\Vhost;
 
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use vierbergenlars\CliCentral\Configuration\VhostConfiguration;
-use vierbergenlars\CliCentral\Exception\Configuration\NoSuchVhostException;
-use vierbergenlars\CliCentral\Exception\Configuration\VhostExistsException;
 use vierbergenlars\CliCentral\Exception\File\FileException;
-use vierbergenlars\CliCentral\Exception\File\FileExistsException;
 use vierbergenlars\CliCentral\Exception\File\InvalidLinkTargetException;
 use vierbergenlars\CliCentral\Exception\File\NotALinkException;
 use vierbergenlars\CliCentral\Exception\File\UndeletableFileException;
-use vierbergenlars\CliCentral\Helper\AppDirectoryHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
 class RemoveCommand extends AbstractMultiVhostsCommand

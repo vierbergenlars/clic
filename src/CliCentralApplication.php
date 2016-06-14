@@ -6,7 +6,7 @@ use Symfony\Component\Console\Exception\ExceptionInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use vierbergenlars\CliCentral\Command;
-use vierbergenlars\CliCentral\Helper\AppDirectoryHelper;
+use vierbergenlars\CliCentral\Helper\DirectoryHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Helper\DebugFormatterHelper;
@@ -25,8 +25,7 @@ class CliCentralApplication extends Application
 
     protected function getDefaultInputDefinition()
     {
-        $def =parent::getDefaultInputDefinition();
-        $def->addOption(new InputOption('env', 'e', InputOption::VALUE_REQUIRED, 'Set environment to run in.', 'staging'));
+        $def = parent::getDefaultInputDefinition();
         $def->addOption(new InputOption('config', 'c', InputOption::VALUE_REQUIRED, 'Set configuration file to use.', getenv('HOME')?(getenv('HOME').'/.clic-settings.json'):null));
         return $def;
     }
@@ -38,7 +37,6 @@ class CliCentralApplication extends Application
             new DebugFormatterHelper(),
             new ProcessHelper(),
             new SymfonyQuestionHelper(),
-            new AppDirectoryHelper(),
             new GlobalConfigurationHelper(),
         ]);
     }

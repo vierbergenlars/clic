@@ -17,7 +17,7 @@ use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
 use vierbergenlars\CliCentral\Exception\File\FileExistsException;
 use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
 use vierbergenlars\CliCentral\Exception\File\NotEmptyException;
-use vierbergenlars\CliCentral\Helper\AppDirectoryHelper;
+use vierbergenlars\CliCentral\Helper\DirectoryHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use vierbergenlars\CliCentral\Util;
 
@@ -41,8 +41,8 @@ class CloneCommand extends Command
         /* @var $processHelper ProcessHelper */
         $questionHelper = $this->getHelper('question');
         /* @var $questionHelper QuestionHelper */
-        $appDirectoryHelper = $this->getHelper('app_directory');
-        /* @var $appDirectoryHelper AppDirectoryHelper */
+        $directoryHelper = $configHelper->getDirectoryHelper();
+        /* @var $directoryHelper DirectoryHelper */
         if($output instanceof ConsoleOutputInterface) {
             $stderr = $output->getErrorOutput();
         } else {
@@ -65,7 +65,7 @@ class CloneCommand extends Command
          */
         do {
             try {
-                $appDirectoryHelper->getDirectoryForApplication($input->getArgument('application'));
+                $directoryHelper->getDirectoryForApplication($input->getArgument('application'));
                 $notSucceeded = false;
             } catch(NotADirectoryException $ex) {
                 mkdir($ex->getFilename(), 0777, true);
@@ -74,8 +74,8 @@ class CloneCommand extends Command
             }
         } while($notSucceeded);
 
-        if(count(scandir($appDirectoryHelper->getDirectoryForApplication($input->getArgument('application'))))>2) {
-            throw new NotEmptyException($appDirectoryHelper->getDirectoryForApplication($input->getArgument('application')));
+        if(count(scandir($directoryHelper->getDirectoryForApplication($input->getArgument('application'))))>2) {
+            throw new NotEmptyException($directoryHelper->getDirectoryForApplication($input->getArgument('application')));
         }
 
         if(!$repositoryConfiguration&&!$input->getOption('no-deploy-key')) {
@@ -127,7 +127,7 @@ class CloneCommand extends Command
             'git',
             'clone',
             Util::replaceRepositoryUrl($repositoryParts, $repositoryConfiguration),
-            $appDirectoryHelper->getDirectoryForApplication($input->getArgument('application')),
+            $directoryHelper->getDirectoryForApplication($input->getArgument('application')),
         ])->setTimeout(null)->getProcess();
         $processHelper->mustRun($stderr, $gitClone);
         $stderr->setVerbosity($prevVerbosity);

@@ -9,10 +9,11 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
-use vierbergenlars\CliCentral\ApplicationEnvironment\Application;
+use vierbergenlars\CliCentral\Configuration\Application;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 use vierbergenlars\CliCentral\Exception\NoScriptException;
-use vierbergenlars\CliCentral\Helper\AppDirectoryHelper;
+use vierbergenlars\CliCentral\Helper\DirectoryHelper;
+use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
 class ExecCommand extends Command
 {
@@ -28,12 +29,12 @@ class ExecCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $appDirectoryHelper = $this->getHelper('app_directory');
-        /* @var $appDirectoryHelper AppDirectoryHelper */
-        $env = $appDirectoryHelper->getEnvironment();
-        $apps = $input->getOption('all-apps')?$env->getApplications(): [];
-        $apps = array_merge($apps, array_map(function($appName) use($env) {
-            return $env->getApplication($appName);
+        $configHelper = $this->getHelper('configuration');
+        /* @var $configHelper GlobalConfigurationHelper */
+        $configuration = $configHelper->getConfiguration();
+        $apps = $input->getOption('all-apps')?$configuration->getApplications(): [];
+        $apps = array_merge($apps, array_map(function($appName) use($configuration) {
+            return $configuration->getApplication($appName);
         }, $input->getArgument('apps')));
 
         $processes = array_filter(array_map(function(Application $app) use($input, $output){

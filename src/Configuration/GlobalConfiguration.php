@@ -20,6 +20,7 @@ class GlobalConfiguration extends Configuration
         }
     }
 
+
     protected function getSchema()
     {
         return json_decode(file_get_contents(__DIR__.'/../../res/clic-settings-schema.json'));
@@ -157,5 +158,20 @@ class GlobalConfiguration extends Configuration
     public function removeVhostConfiguration($vhostName)
     {
         $this->removeConfigOption(['vhosts', $vhostName]);
+    }
+
+    public function getApplications()
+    {
+        $applications = [];
+        foreach((array)$this->getConfigOption(['applications'], []) as $appName => $appConfig) {
+            $applications[$appName] = new Application($appName, new \SplFileInfo($appConfig->path), @$appConfig->overrides);
+        }
+        return $applications;
+    }
+
+    public function getApplication($appName)
+    {
+        $appConfig = $this->getConfigOption(['applications', $appName]);
+        return new Application($appName, new \SplFileInfo($appConfig->path), @$appConfig->overrides);
     }
 }

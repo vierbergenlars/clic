@@ -2,18 +2,11 @@
 
 namespace vierbergenlars\CliCentral\Command\Vhost;
 
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\DebugFormatterHelper;
 use Symfony\Component\Console\Helper\ProcessHelper;
-use Symfony\Component\Console\Helper\Table;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\ProcessBuilder;
-use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
 use vierbergenlars\CliCentral\Configuration\VhostConfiguration;
 use vierbergenlars\CliCentral\Exception\File\FileException;
 use vierbergenlars\CliCentral\Exception\File\FileExistsException;

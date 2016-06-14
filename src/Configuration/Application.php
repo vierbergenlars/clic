@@ -1,7 +1,8 @@
 <?php
 
-namespace vierbergenlars\CliCentral\ApplicationEnvironment;
+namespace vierbergenlars\CliCentral\Configuration;
 
+use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
 use vierbergenlars\CliCentral\Exception\NoScriptException;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
@@ -11,16 +12,15 @@ use Symfony\Component\Process\Process;
 class Application
 {
     /**
+     * @var string
+     */
+    private $appName;
+
+    /**
      * Base directory to the environment
      * @var \SplFileInfo
      */
     private $baseDir;
-
-    /**
-     * Environment of the application
-     * @var Environment
-     */
-    private $environment;
 
     /**
      * @var ApplicationConfiguration
@@ -28,19 +28,26 @@ class Application
     private $configuration;
 
     /**
-     * Application constructor.
-     * @param Environment $env
-     * @param \SplFileInfo $baseDir
+     * @var \stdClass
      */
-    public function __construct(Environment $env, \SplFileInfo $baseDir)
+    private $overrides;
+
+    /**
+     * Application constructor.
+     * @param string $appName
+     * @param \SplFileInfo $baseDir
+     * @param \stdClass|null $overrides
+     */
+    public function __construct($appName, \SplFileInfo $baseDir, \stdClass $overrides = null)
     {
-        $this->environment = $env;
+        $this->appName = $appName;
         $this->baseDir = $baseDir;
+        $this->overrides = $overrides?:new \stdClass();
     }
 
     public function getName()
     {
-        return $this->baseDir->getFilename();
+        return $this->appName;
     }
 
     protected function getConfigurationFile()
@@ -56,8 +63,23 @@ class Application
     protected function getConfiguration()
     {
         if(!$this->configuration)
-            $this->configuration = new ApplicationConfiguration($this->getConfigurationFile());
+            $this->configuration = new ApplicationConfiguration($this->getConfigurationFile(), $this->overrides);
         return $this->configuration;
+    }
+
+    public function getProcessBuilder(array $arguments = [])
+    {
+        $env = [];
+        foreach($_SERVER as $key=>$value) {
+            $ev = getenv($key);
+            if($ev)
+                $env[$key] = $ev;
+        }
+
+        return ProcessBuilder::create($arguments)
+            ->setWorkingDirectory($this->baseDir->getPathname())
+            ->addEnvironmentVariables($env)
+        ;
     }
 
     public function getScriptProcess($scriptName)
@@ -70,7 +92,6 @@ class Application
                     $env[$key] = $ev;
             }
             return new Process($this->getConfiguration()->getScriptCommand($scriptName), $this->baseDir->getPathname(), array_merge($env, [
-                'CLIC_ENV' => $this->environment->getName(),
                 'CLIC_NONINTERACTIVE' => '1',
             ]), null, null);
         } catch(NoScriptException $ex) {

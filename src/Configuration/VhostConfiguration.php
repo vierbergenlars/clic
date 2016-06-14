@@ -43,16 +43,6 @@ class VhostConfiguration
         $this->config->target = $target;
     }
 
-    public function getEnvironment()
-    {
-        return $this->config->environment;
-    }
-
-    public function setEnvironment($environment)
-    {
-        $this->config->environment = $environment;
-    }
-
     public function getLink()
     {
         return new \SplFileInfo($this->config->link);

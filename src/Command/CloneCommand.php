@@ -132,6 +132,13 @@ class CloneCommand extends Command
         $processHelper->mustRun($stderr, $gitClone);
         $stderr->setVerbosity($prevVerbosity);
 
+        $this->getApplication()
+            ->find('application:add')
+            ->run(new ArrayInput([
+                'application' => $input->getArgument('application'),
+                '--remote' => $input->getArgument('repository'),
+            ]), $output);
+
         if(!$input->getOption('no-scripts')) {
             /*
              * Run post-clone script

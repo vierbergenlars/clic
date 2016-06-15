@@ -10,6 +10,7 @@ use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Configuration\Application;
 use vierbergenlars\CliCentral\Configuration\ApplicationConfiguration;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
+use vierbergenlars\CliCentral\PathUtil;
 
 class RemoveCommand extends AbstractMultiApplicationsCommand
 {
@@ -56,12 +57,6 @@ class RemoveCommand extends AbstractMultiApplicationsCommand
         $configHelper = $this->getHelper('configuration');
         /* @var $configHelper GlobalConfigurationHelper */
         $appDir = $configHelper->getConfiguration()->getApplicationsDirectory();
-        $path = realpath($applicationConfiguration->getPath());
-        while(($parentPath = dirname($path)) !== $path) {
-            if($parentPath === $appDir)
-                return true;
-            $path = $parentPath;
-        }
-        return false;
+        return PathUtil::isSubDirectory($applicationConfiguration->getPath(), $appDir);
     }
 }

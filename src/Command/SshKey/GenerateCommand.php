@@ -16,7 +16,9 @@ use vierbergenlars\CliCentral\Exception\Configuration\NoSuchRepositoryException;
 use vierbergenlars\CliCentral\Exception\Configuration\RepositoryExistsException;
 use vierbergenlars\CliCentral\Exception\File\FileExistsException;
 use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
+use vierbergenlars\CliCentral\Exception\File\OutsideConfiguredRootDirectoryException;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
+use vierbergenlars\CliCentral\PathUtil;
 use vierbergenlars\CliCentral\Util;
 
 class GenerateCommand extends Command
@@ -68,6 +70,8 @@ class GenerateCommand extends Command
         } catch(\RuntimeException $ex) {
             // noop
         }
+
+        OutsideConfiguredRootDirectoryException::assert($keyFile, 'ssh-dir', $configHelper->getConfiguration()->getSshDirectory());
 
         $sshKeygen = ProcessBuilder::create([
             'ssh-keygen',

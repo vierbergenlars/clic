@@ -14,6 +14,7 @@ use vierbergenlars\CliCentral\Configuration\ApplicationConfiguration;
 use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
 use vierbergenlars\CliCentral\Exception\Configuration\ApplicationExistsException;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSuchApplicationException;
+use vierbergenlars\CliCentral\Exception\File\OutsideConfiguredRootDirectoryException;
 use vierbergenlars\CliCentral\Helper\DirectoryHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use vierbergenlars\CliCentral\Util;
@@ -46,6 +47,7 @@ class AddCommand extends Command
 
         $application = new ApplicationConfiguration();
         $application->setPath($directoryHelper->getDirectoryForApplication($input->getArgument('application')));
+        OutsideConfiguredRootDirectoryException::assert($application->getPath(), 'applications-dir', $configHelper->getConfiguration()->getApplicationsDirectory());
         $application = Application::fromConfig($input->getArgument('application'), $application);
 
         if(!$input->getOption('remote')) {

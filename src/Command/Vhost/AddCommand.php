@@ -12,8 +12,10 @@ use vierbergenlars\CliCentral\Exception\Configuration\NoSuchVhostException;
 use vierbergenlars\CliCentral\Exception\Configuration\VhostExistsException;
 use vierbergenlars\CliCentral\Exception\File\FileExistsException;
 use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
+use vierbergenlars\CliCentral\Exception\File\OutsideConfiguredRootDirectoryException;
 use vierbergenlars\CliCentral\Helper\DirectoryHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
+use vierbergenlars\CliCentral\PathUtil;
 
 class AddCommand extends Command
 {
@@ -53,6 +55,7 @@ class AddCommand extends Command
                     throw new FileExistsException($vhostLink);
                 $notSucceeded = false;
             } catch(NotADirectoryException $ex) {
+                OutsideConfiguredRootDirectoryException::assert($ex->getFilename(), 'vhosts-dir', $configHelper->getConfiguration()->getVhostsDirectory());
                 mkdir($ex->getFilename(), 0777, true);
                 $stderr->writeln(sprintf('Created directory <info>%s</info>', $ex->getFilename()), OutputInterface::VERBOSITY_VERY_VERBOSE);
                 $notSucceeded = true;
@@ -61,6 +64,8 @@ class AddCommand extends Command
 
         if(!$vhostLink)
             throw new \LogicException('Could not find vhost link name');
+
+        OutsideConfiguredRootDirectoryException::assert($vhostLink, 'vhosts-dir', $configHelper->getConfiguration()->getVhostsDirectory());
 
         $application = $configHelper->getConfiguration()->getApplication($input->getArgument('application'));
         $webDir = $application->getWebDirectory();

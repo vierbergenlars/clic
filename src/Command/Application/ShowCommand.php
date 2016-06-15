@@ -10,6 +10,7 @@ use vierbergenlars\CliCentral\Configuration\ApplicationConfiguration;
 use vierbergenlars\CliCentral\Configuration\VhostConfiguration;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSuchRepositoryException;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
+use vierbergenlars\CliCentral\PathUtil;
 use vierbergenlars\CliCentral\Util;
 
 class ShowCommand extends AbstractMultiApplicationsCommand
@@ -23,6 +24,8 @@ class ShowCommand extends AbstractMultiApplicationsCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $configHelper = $this->getHelper('configuration');
+        /* @var $configHelper GlobalConfigurationHelper */
         if(count($input->getArgument('applications')) == 1&&!$input->getOption('all')) {
             $applicationConfig = current($input->getArgument('applications'));
             /* @var $applicationConfig Application */
@@ -85,13 +88,7 @@ class ShowCommand extends AbstractMultiApplicationsCommand
         $configHelper = $this->getHelper('configuration');
         /* @var $configHelper GlobalConfigurationHelper */
         $appDir = $configHelper->getConfiguration()->getApplicationsDirectory();
-        $path = realpath($applicationConfiguration->getPath());
-        while(($parentPath = dirname($path)) !== $path) {
-            if($parentPath === $appDir)
-                return true;
-            $path = $parentPath;
-        }
-        return false;
+        return PathUtil::isSubDirectory($applicationConfiguration->getPath(), $appDir);
     }
 
     private function getLinkedVhosts($appName)

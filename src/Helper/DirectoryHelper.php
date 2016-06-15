@@ -25,11 +25,6 @@ class DirectoryHelper
         $this->globalConfiguration = $globalConfiguration;
     }
 
-    public function getApplication($applicationName)
-    {
-        return new Application($applicationName, new \SplFileInfo($this->getDirectoryForApplication($applicationName)));
-    }
-
     public function getDirectoryForApplication($applicationName)
     {
         $baseDir = $this->globalConfiguration->getApplicationsDirectory();

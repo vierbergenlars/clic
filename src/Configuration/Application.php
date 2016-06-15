@@ -9,7 +9,7 @@ use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
 use Symfony\Component\Process\Process;
 
-class Application
+class Application extends ApplicationConfiguration
 {
     /**
      * @var string
@@ -17,32 +17,26 @@ class Application
     private $appName;
 
     /**
-     * Base directory to the environment
-     * @var \SplFileInfo
-     */
-    private $baseDir;
-
-    /**
-     * @var ApplicationConfiguration
+     * @var LocalApplicationConfiguration
      */
     private $configuration;
 
     /**
-     * @var \stdClass
-     */
-    private $overrides;
-
-    /**
      * Application constructor.
      * @param string $appName
-     * @param \SplFileInfo $baseDir
-     * @param \stdClass|null $overrides
+     * @param \stdClass $config
      */
-    public function __construct($appName, \SplFileInfo $baseDir, \stdClass $overrides = null)
+    public function __construct($appName, \stdClass $config)
     {
+        if(!isset($config->path))
+            throw new \LogicException('Cannot create application without path');
+        parent::__construct($config);
         $this->appName = $appName;
-        $this->baseDir = $baseDir;
-        $this->overrides = $overrides?:new \stdClass();
+    }
+
+    public static function fromConfig($appName, ApplicationConfiguration $config)
+    {
+        return new self($appName, $config->getConfig());
     }
 
     public function getName()
@@ -52,7 +46,7 @@ class Application
 
     protected function getConfigurationFile()
     {
-        $file = new \SplFileInfo($this->baseDir.'/.cliconfig.json');
+        $file = new \SplFileInfo($this->getPath().'/.cliconfig.json');
         if(!$file->isFile())
             throw new NotAFileException($file);
         if(!$file->isReadable())
@@ -63,7 +57,7 @@ class Application
     protected function getConfiguration()
     {
         if(!$this->configuration)
-            $this->configuration = new ApplicationConfiguration($this->getConfigurationFile(), $this->overrides);
+            $this->configuration = new LocalApplicationConfiguration($this->getConfigurationFile(), $this->getOverrides());
         return $this->configuration;
     }
 
@@ -77,8 +71,9 @@ class Application
         }
 
         return ProcessBuilder::create($arguments)
-            ->setWorkingDirectory($this->baseDir->getPathname())
+            ->setWorkingDirectory($this->getPath())
             ->addEnvironmentVariables($env)
+            ->setTimeout(null)
         ;
     }
 
@@ -91,7 +86,7 @@ class Application
                 if($ev)
                     $env[$key] = $ev;
             }
-            return new Process($this->getConfiguration()->getScriptCommand($scriptName), $this->baseDir->getPathname(), array_merge($env, [
+            return new Process($this->getConfiguration()->getScriptCommand($scriptName), $this->getPath(), array_merge($env, [
                 'CLIC_NONINTERACTIVE' => '1',
             ]), null, null);
         } catch(NoScriptException $ex) {
@@ -101,7 +96,7 @@ class Application
 
     public function getWebDirectory()
     {
-        $webDir = new \SplFileInfo($this->baseDir->getPathname().'/'.$this->getConfiguration()->getWebDir());
+        $webDir = new \SplFileInfo($this->getPath().'/'.$this->getConfiguration()->getWebDir());
         if(!$webDir->isDir())
             throw new NotADirectoryException($webDir);
         return $webDir;

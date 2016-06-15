@@ -140,8 +140,6 @@ class CloneCommand extends Command
                 ->find('exec')
                 ->run(new ArrayInput([
                     'command' => 'exec',
-                    '--env' => $input->getOption('env'),
-                    '--config' => $input->getOption('config'),
                     '--skip-missing' => true,
                     'script' => 'post-clone',
                     'apps' => [

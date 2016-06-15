@@ -2,70 +2,78 @@
 
 namespace vierbergenlars\CliCentral\Configuration;
 
-use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
-use vierbergenlars\CliCentral\Exception\NoScriptException;
-
-class ApplicationConfiguration extends Configuration
+class ApplicationConfiguration
 {
-    /**
-     * @var array
-     */
-    private $overrides;
+    private $config;
 
-    /**
-     * @var \stdClass
-     */
-    private $mergedConfig;
-
-    public function __construct(\SplFileInfo $configFile, \stdClass $overrides)
+    public function __construct(\stdClass $config = null)
     {
-        parent::__construct($configFile);
-
-        $this->overrides = (array)$overrides;
+        if(!$config)
+            $config = new \stdClass();
+        $this->config = $config;
     }
 
-    protected function getSchema()
-    {
-        return json_decode(file_get_contents(__DIR__ . '/../../res/clic-schema.json'));
-    }
-
+    /**
+     * @return \stdClass
+     */
     public function getConfig()
     {
-        if(!$this->mergedConfig)
-            $this->mergedConfig = (object)array_merge_recursive((array)parent::getConfig(), $this->overrides);
-        return $this->mergedConfig;
-    }
-
-    protected function setConfigOption(array $path, $value)
-    {
-        $this->mergedConfig = null;
-        parent::setConfigOption($path, $value);
-    }
-
-    protected function removeConfigOption(array $path)
-    {
-        $this->mergedConfig = null;
-        parent::removeConfigOption($path);
+        return $this->config;
     }
 
     /**
-     * @param string $scriptName
      * @return string
-     * @throws NoScriptException
      */
-    public function getScriptCommand($scriptName)
+    public function getPath()
     {
-        try {
-            $script = $this->getConfigOption(['scripts', $scriptName], null, true);
-        } catch(MissingConfigurationParameterException $ex) {
-            throw new NoScriptException($scriptName, $ex);
-        }
-        return $script;
+        return $this->config->path;
     }
 
-    public function getWebDir()
+    /**
+     * @param \SplFileInfo|string $path
+     */
+    public function setPath($path)
     {
-        return $this->getConfigOption(['web-dir'], null, true);
+        if($path instanceof \SplFileInfo)
+            $path = $path->getPathname();
+        $this->config->path = $path;
     }
 
+    /**
+     * @return string|null
+     */
+    public function getRepository()
+    {
+        return @$this->config->repository?:null;
+    }
+
+    /**
+     * @param string|null $repository
+     */
+    public function setRepository($repository)
+    {
+        if(!$repository)
+            unset($this->config->repository);
+        else
+            $this->config->repository = $repository;
+    }
+
+    /**
+     * @return \stdClass
+     */
+    public function getOverrides()
+    {
+        return @$this->config->overrides?:new \stdClass();
+    }
+
+    /**
+     * @param \stdClass|null $overrides
+     */
+    public function setOverrides(\stdClass $overrides = null)
+    {
+        if(!$overrides)
+            unset($this->config->overrides);
+        else
+            $this->config->overrides = $overrides;
+    }
 }

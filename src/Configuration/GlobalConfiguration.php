@@ -3,6 +3,7 @@
 namespace vierbergenlars\CliCentral\Configuration;
 
 use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
+use vierbergenlars\CliCentral\Exception\Configuration\NoSuchApplicationException;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSuchRepositoryException;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSuchVhostException;
 use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
@@ -164,14 +165,27 @@ class GlobalConfiguration extends Configuration
     {
         $applications = [];
         foreach((array)$this->getConfigOption(['applications'], []) as $appName => $appConfig) {
-            $applications[$appName] = new Application($appName, new \SplFileInfo($appConfig->path), @$appConfig->overrides);
+            $applications[$appName] = new Application($appName, $appConfig);
         }
         return $applications;
     }
 
     public function getApplication($appName)
     {
-        $appConfig = $this->getConfigOption(['applications', $appName]);
-        return new Application($appName, new \SplFileInfo($appConfig->path), @$appConfig->overrides);
+        try {
+            return new Application($appName, $this->getConfigOption(['applications', $appName], null, true));
+        } catch(MissingConfigurationParameterException $ex) {
+            throw new NoSuchApplicationException($appName, $ex);
+        }
+    }
+
+    public function setApplication($appName, ApplicationConfiguration $applicationConfiguration)
+    {
+        $this->setConfigOption(['applications', $appName], $applicationConfiguration->getConfig());
+    }
+
+    public function removeApplication($appName)
+    {
+        $this->removeConfigOption(['applications', $appName]);
     }
 }

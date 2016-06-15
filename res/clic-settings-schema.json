@@ -4,6 +4,31 @@
   "additionalProperties": false,
   "required": ["config"],
   "properties": {
+    "applications": {
+      "type": "object",
+      "description": "Links application names (keys) to settings (values)",
+      "additionalProperties": false,
+      "patternProperties": {
+        ".*": {
+          "type": "object",
+          "description": "Application settings",
+          "additionalProperties": false,
+          "required": ["path"],
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "repository": {
+              "type": "string"
+            },
+            "overrides": {
+              "type": "object",
+              "description": "Overrides for the applications .cliconfig.json"
+            }
+          }
+        }
+      }
+    },
     "vhosts": {
       "type": "object",
       "description": "Links a vhost name (keys) to settings (values)",
@@ -12,7 +37,7 @@
         ".*": {
           "type": "object",
           "description": "Vhost settings",
-          "required": ["application", "link", "target", "environment"],
+          "required": ["application", "link", "target"],
           "additionalProperties": false,
           "properties": {
             "application": {
@@ -22,9 +47,6 @@
               "type": "string"
             },
             "target": {
-              "type": "string"
-            },
-            "environment": {
               "type": "string"
             },
             "disabled": {

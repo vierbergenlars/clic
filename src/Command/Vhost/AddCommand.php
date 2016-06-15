@@ -62,7 +62,7 @@ class AddCommand extends Command
         if(!$vhostLink)
             throw new \LogicException('Could not find vhost link name');
 
-        $application = $directoryHelper->getApplication($input->getArgument('application'));
+        $application = $configHelper->getConfiguration()->getApplication($input->getArgument('application'));
         $webDir = $application->getWebDirectory();
 
         $vhostConfig = new VhostConfiguration();
@@ -78,7 +78,7 @@ class AddCommand extends Command
         if(!@symlink($vhostConfig->getTarget(), $vhostConfig->getLink()))
             throw new \RuntimeException(sprintf('Failed to link "%s" to "%s": %s', $vhostConfig->getLink(), $vhostConfig->getTarget(), error_get_last()['message']));
 
-        $output->writeln(sprintf('Created vhost <info>%s</info> for <info>%s</info> (<comment>%s</comment>) (link to: <info>%s</info>)', $input->getArgument('vhost'), $vhostConfig->getApplication(), $vhostConfig->getEnvironment(), $vhostConfig->getTarget()));
+        $output->writeln(sprintf('Created vhost <info>%s</info> for <info>%s</info> (<comment>%s</comment>)', $input->getArgument('vhost'), $vhostConfig->getApplication(), $vhostConfig->getTarget()));
 
         $configHelper->getConfiguration()->setVhostConfiguration($input->getArgument('vhost'), $vhostConfig);
         $configHelper->getConfiguration()->write();

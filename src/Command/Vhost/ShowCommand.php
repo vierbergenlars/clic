@@ -19,10 +19,7 @@ class ShowCommand extends AbstractMultiVhostsCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $configHelper = $this->getHelper('configuration');
-        /* @var $configHelper GlobalConfigurationHelper */
-
-        if(count($input->getArgument('vhosts')) == 1) {
+        if(count($input->getArgument('vhosts')) == 1&&!$input->getOption('all')) {
             $vhostConfig = current($input->getArgument('vhosts'));
             /* @var $vhostConfig VhostConfiguration */
             $output->writeln(sprintf('Application: <info>%s</info>', $vhostConfig->getApplication()));

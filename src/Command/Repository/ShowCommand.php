@@ -1,6 +1,6 @@
 <?php
 
-namespace vierbergenlars\CliCentral\Command\SshKey;
+namespace vierbergenlars\CliCentral\Command\Repository;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -13,12 +13,12 @@ use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
-class ShowCommand extends AbstractMultiSshKeysCommand
+class ShowCommand extends AbstractMultiRepositoriesCommand
 {
     protected function configure()
     {
         parent::configure();
-        $this->setName('sshkey:show')
+        $this->setName('repository:show')
         ;
     }
 

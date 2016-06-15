@@ -48,12 +48,10 @@ class CliCentralApplication extends Application
             new Command\Config\SetCommand(),
             new Command\Config\UnsetCommand(),
             new Command\Config\GetCommand(),
-            new Command\CloneCommand(),
-            new Command\ExecCommand(),
-            new Command\SshKey\RemoveCommand(),
-            new Command\SshKey\AddCommand(),
-            new Command\SshKey\GenerateCommand(),
-            new Command\SshKey\ShowCommand(),
+            new Command\Repository\RemoveCommand(),
+            new Command\Repository\AddCommand(),
+            new Command\Repository\GenerateCommand(),
+            new Command\Repository\ShowCommand(),
             new Command\Vhost\AddCommand(),
             new Command\Vhost\RemoveCommand(),
             new Command\Vhost\ShowCommand(),
@@ -63,6 +61,8 @@ class CliCentralApplication extends Application
             new Command\Application\AddCommand(),
             new Command\Application\RemoveCommand(),
             new Command\Application\ShowCommand(),
+            new Command\Application\CloneCommand(),
+            new Command\Application\ExecCommand(),
         ]);
     }
 }

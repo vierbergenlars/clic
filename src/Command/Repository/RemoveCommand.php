@@ -1,6 +1,6 @@
 <?php
 
-namespace vierbergenlars\CliCentral\Command\SshKey;
+namespace vierbergenlars\CliCentral\Command\Repository;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
@@ -16,12 +16,12 @@ use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
 use vierbergenlars\CliCentral\Exception\File\UnwritableFileException;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
-class RemoveCommand extends AbstractMultiSshKeysCommand
+class RemoveCommand extends AbstractMultiRepositoriesCommand
 {
     protected function configure()
     {
         parent::configure();
-        $this->setName('sshkey:remove')
+        $this->setName('repository:remove')
         ;
     }
 

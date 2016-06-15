@@ -1,6 +1,6 @@
 <?php
 
-namespace vierbergenlars\CliCentral\Command\SshKey;
+namespace vierbergenlars\CliCentral\Command\Repository;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProcessHelper;
@@ -25,7 +25,7 @@ class GenerateCommand extends Command
 {
     protected function configure()
     {
-        $this->setName('sshkey:generate')
+        $this->setName('repository:generate-key')
             ->addArgument('key', InputArgument::OPTIONAL, 'The key file to generate')
             ->addOption('comment', 'C', InputOption::VALUE_REQUIRED, 'Comment to add to the generated key file')
             ->addOption('target-repository', 'R', InputOption::VALUE_REQUIRED, 'Repository to link the generated key to')
@@ -92,9 +92,8 @@ class GenerateCommand extends Command
 
 
         if($input->getOption('target-repository')) {
-            $this->getApplication()->find('sshkey:add')
+            $this->getApplication()->find('repository:add')
                 ->run(new ArrayInput([
-                    'command' => 'sshkey:add',
                     'repository' => $input->getOption('target-repository'),
                     'key' => $keyFile->getPathname(),
                     '--alias' => preg_replace('/^id_rsa-/', '', $keyFile->getFilename()),

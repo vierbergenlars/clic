@@ -1,6 +1,6 @@
 <?php
 
-namespace vierbergenlars\CliCentral\Command\SshKey;
+namespace vierbergenlars\CliCentral\Command\Repository;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -9,7 +9,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
-abstract class AbstractMultiSshKeysCommand extends Command
+abstract class AbstractMultiRepositoriesCommand extends Command
 {
     protected function configure()
     {

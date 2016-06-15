@@ -1,6 +1,6 @@
 <?php
 
-namespace vierbergenlars\CliCentral\Command;
+namespace vierbergenlars\CliCentral\Command\Application;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProcessHelper;
@@ -9,33 +9,27 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
+use vierbergenlars\CliCentral\Command\Application\AbstractMultiApplicationsCommand;
 use vierbergenlars\CliCentral\Configuration\Application;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 use vierbergenlars\CliCentral\Exception\NoScriptException;
 use vierbergenlars\CliCentral\Helper\DirectoryHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
-class ExecCommand extends Command
+class ExecCommand extends AbstractMultiApplicationsCommand
 {
     protected function configure()
     {
-        $this->setName('exec')
-            ->addOption('all-apps', 'A', InputOption::VALUE_NONE, 'Execute the script on all applications')
+        $this->setName('application:execute')
             ->addArgument('script', InputArgument::REQUIRED, 'The script to execute')
-            ->addArgument('apps', InputArgument::OPTIONAL|InputArgument::IS_ARRAY, 'Applications to execute the script on')
             ->addOption('skip-missing', null, InputOption::VALUE_NONE, 'Skips missing scripts.')
         ;
+        parent::configure();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $configHelper = $this->getHelper('configuration');
-        /* @var $configHelper GlobalConfigurationHelper */
-        $configuration = $configHelper->getConfiguration();
-        $apps = $input->getOption('all-apps')?$configuration->getApplications(): [];
-        $apps = array_merge($apps, array_map(function($appName) use($configuration) {
-            return $configuration->getApplication($appName);
-        }, $input->getArgument('apps')));
+        $apps = $input->getArgument('applications');
 
         $processes = array_filter(array_map(function(Application $app) use($input, $output){
             try {

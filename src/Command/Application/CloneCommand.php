@@ -1,6 +1,6 @@
 <?php
 
-namespace vierbergenlars\CliCentral\Command;
+namespace vierbergenlars\CliCentral\Command\Application;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProcessHelper;
@@ -25,7 +25,7 @@ class CloneCommand extends Command
 {
     protected function configure()
     {
-        $this->setName('clone')
+        $this->setName('application:clone')
             ->addArgument('repository', InputArgument::REQUIRED, 'The remote repository to clone from.')
             ->addArgument('application', InputArgument::OPTIONAL, 'The name of the application to clone to. (Defaults to repository name)')
             ->addOption('no-deploy-key', null, InputOption::VALUE_NONE, 'Do not generate or use a deploy key')
@@ -87,7 +87,7 @@ class CloneCommand extends Command
              */
             $keyFile = $configHelper->getConfiguration()->getSshDirectory() . '/id_rsa-' . $repositoryConfiguration->getSshAlias();
             try {
-                $this->getApplication()->find('sshkey:generate')
+                $this->getApplication()->find('repository:generate-key')
                     ->run(new ArrayInput([
                         'key' => $keyFile,
                         '--comment' => 'clic-deploy-key-' . $repositoryConfiguration->getSshAlias() . '@' . gethostname(),
@@ -144,12 +144,11 @@ class CloneCommand extends Command
              * Run post-clone script
              */
             return $this->getApplication()
-                ->find('exec')
+                ->find('application:execute')
                 ->run(new ArrayInput([
-                    'command' => 'exec',
                     '--skip-missing' => true,
                     'script' => 'post-clone',
-                    'apps' => [
+                    'applications' => [
                         $input->getArgument('application'),
                     ],
                 ]), $output);

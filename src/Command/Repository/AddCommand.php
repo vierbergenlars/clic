@@ -1,6 +1,6 @@
 <?php
 
-namespace vierbergenlars\CliCentral\Command\SshKey;
+namespace vierbergenlars\CliCentral\Command\Repository;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -22,7 +22,7 @@ class AddCommand extends Command
 {
     protected function configure()
     {
-        $this->setName('sshkey:add')
+        $this->setName('repository:add')
             ->addArgument('repository', InputArgument::REQUIRED, 'The repository to add the ssh key and alias to')
             ->addArgument('key', InputArgument::REQUIRED, 'The private key file to add to the repository')
             ->addOption('alias', null, InputOption::VALUE_REQUIRED, 'The alias to use for the repository')

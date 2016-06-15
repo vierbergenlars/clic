@@ -13,12 +13,12 @@ use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
-class ShowCommand extends Command
+class ShowCommand extends AbstractMultiSshKeysCommand
 {
     protected function configure()
     {
+        parent::configure();
         $this->setName('sshkey:show')
-            ->addArgument('repository', InputArgument::OPTIONAL, 'The repository to show the ssh information for')
         ;
     }
 
@@ -27,26 +27,21 @@ class ShowCommand extends Command
         $configHelper = $this->getHelper('configuration');
         /* @var $configHelper GlobalConfigurationHelper */
 
-        if($input->getArgument('repository')) {
-            $repositoryConfig = $configHelper->getConfiguration()->getRepositoryConfiguration($input->getArgument('repository'), true);
+        if(count($input->getArgument('repositories')) == 1&&!$input->getOption('all')) {
+            $repositoryConfig = current($input->getArgument('repositories'));
 
-            if($output instanceof ConsoleOutputInterface) {
-                $stderr = $output->getErrorOutput();
-            } else {
-                $stderr = $output;
-            }
-            $stderr->writeln(sprintf('Private key file: <info>%s</info>', $repositoryConfig->getIdentityFile()));
-            $stderr->writeln(sprintf('Ssh alias: <comment>%s</comment>', $repositoryConfig->getSshAlias()), OutputInterface::VERBOSITY_VERBOSE);
+            $output->writeln(sprintf('Private key file: <info>%s</info>', $repositoryConfig->getIdentityFile()));
+            $output->writeln(sprintf('Ssh alias: <comment>%s</comment>', $repositoryConfig->getSshAlias()), OutputInterface::VERBOSITY_VERBOSE);
             $fingerPrint = $this->getSshFingerprint($repositoryConfig->getIdentityFile());
             array_unshift($fingerPrint, '%s <info>%s</info>  <comment>%s</comment> %s');
-            $stderr->writeln(call_user_func_array('sprintf', $fingerPrint));
+            $output->writeln(call_user_func_array('sprintf', $fingerPrint));
             $output->write(file_get_contents($repositoryConfig->getIdentityFile().'.pub'), false, OutputInterface::OUTPUT_RAW|OutputInterface::VERBOSITY_QUIET);
+            $output->writeln(sprintf('Status: %s', $this->getStatusMessage($repositoryConfig)));
         } else {
-            $repositoryConfigs = $configHelper->getConfiguration()->getRepositoryConfigurations();
             $table = new Table($output);
-            $table->setHeaders(['Repository', 'SSH key']);
+            $table->setHeaders(['Repository', 'SSH key', 'Status']);
 
-            foreach($repositoryConfigs as $repository => $repositoryConfig) {
+            foreach($input->getArgument('repositories') as $repository => $repositoryConfig) {
                 try {
                     /* @var $repositoryConfig RepositoryConfiguration */
                     $fingerPrint = $this->getSshFingerprint($repositoryConfig->getIdentityFile());
@@ -58,7 +53,8 @@ class ShowCommand extends Command
                 }
                 $table->addRow([
                     sprintf('%s' . PHP_EOL . '<comment>%s</comment>', $repository, $repositoryConfig->getSshAlias()),
-                    str_replace("\n", PHP_EOL, call_user_func_array('sprintf', $fingerPrint))
+                    str_replace("\n", PHP_EOL, call_user_func_array('sprintf', $fingerPrint)),
+                    $this->getStatusMessage($repositoryConfig),
                 ]);
             }
 
@@ -79,6 +75,15 @@ class ShowCommand extends Command
             '-f',
             $file,
         ])->getProcess()->mustRun()->getOutput()));
+    }
+
+    private function getStatusMessage(RepositoryConfiguration $repositoryConfiguration)
+    {
+        if(!is_file($repositoryConfiguration->getIdentityFile()))
+            return '<error>Missing private key file</error>';
+        if(!is_file($repositoryConfiguration->getIdentityFile().'.pub'))
+            return '<comment>Missing public key file</comment>';
+        return '<info>OK</info>';
     }
 
 }

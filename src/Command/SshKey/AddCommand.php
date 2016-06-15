@@ -9,6 +9,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSshRepositoryException;
+use vierbergenlars\CliCentral\Exception\Configuration\NoSuchRepositoryException;
 use vierbergenlars\CliCentral\Exception\Configuration\RepositoryExistsException;
 use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
@@ -33,9 +34,12 @@ class AddCommand extends Command
         $configHelper = $this->getHelper('configuration');
         /* @var $configHelper GlobalConfigurationHelper */
 
-        $repositoryConfig = $configHelper->getConfiguration()->getRepositoryConfiguration($input->getArgument('repository'));
-        if($repositoryConfig)
+        try {
+            $configHelper->getConfiguration()->getRepositoryConfiguration($input->getArgument('repository'), true);
             throw new RepositoryExistsException($input->getArgument('repository'));
+        } catch(NoSuchRepositoryException $ex) {
+            // no op
+        }
         if(!Util::isSshRepositoryUrl($input->getArgument('repository')))
             throw new NoSshRepositoryException($input->getArgument('repository'));
 

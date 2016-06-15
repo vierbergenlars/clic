@@ -12,6 +12,7 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSshRepositoryException;
+use vierbergenlars\CliCentral\Exception\Configuration\NoSuchRepositoryException;
 use vierbergenlars\CliCentral\Exception\Configuration\RepositoryExistsException;
 use vierbergenlars\CliCentral\Exception\File\FileExistsException;
 use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
@@ -35,9 +36,12 @@ class GenerateCommand extends Command
         if($input->getOption('target-repository')) {
             $configHelper = $this->getHelper('configuration');
             /* @var $configHelper GlobalConfigurationHelper */
-            $repoConfig = $configHelper->getConfiguration()->getRepositoryConfiguration($input->getOption('target-repository'));
-            if($repoConfig)
+            try {
+                $configHelper->getConfiguration()->getRepositoryConfiguration($input->getOption('target-repository'), true);
                 throw new RepositoryExistsException($input->getOption('target-repository'));
+            } catch(NoSuchRepositoryException $ex) {
+                // no op
+            }
             if(!Util::isSshRepositoryUrl($input->getOption('target-repository')))
                 throw new NoSshRepositoryException($input->getOption('target-repository'));
         }

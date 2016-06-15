@@ -32,15 +32,16 @@ class ShowCommand extends AbstractMultiVhostsCommand
             if(!$vhostLink->isLink())
                 $messages[] = '<error>(Not a link)</error>';
             $output->writeln(implode(' ', $messages));
-            if($vhostLink->isLink()&&!$vhostConfig->isDisabled()&&$vhostLink->getLinkTarget() !== $vhostTarget->getPathname()) {
+            if($vhostLink->isLink()&&$vhostLink->getLinkTarget() !== $vhostTarget->getPathname()) {
                     $output->writeln(sprintf('Target: <error>%s</error> (Should be <info>%s</info>)', $vhostLink->getLinkTarget(), $vhostTarget->getPathname()));
             } else {
-                $output->writeln(sprintf('Target: %s', $vhostTarget));
+                $output->writeln(sprintf('Target: %s', $vhostConfig->getOriginalTarget()));
             }
-            $output->writeln(sprintf('Status: %s', $this->getStatusMessage($vhostConfig)));
+            $output->writeln(sprintf('Status: %s', $vhostConfig->getStatusMessage()));
         } else {
             $vhostConfigs = $input->getArgument('vhosts');
             $table = new Table($output);
+
             $table->setHeaders(['Vhost', 'Application', 'Status']);
 
             foreach($vhostConfigs as $vhost => $vhostConfig) {
@@ -48,32 +49,11 @@ class ShowCommand extends AbstractMultiVhostsCommand
                 $table->addRow([
                     $vhost,
                     $vhostConfig->getApplication(),
-                    $this->getStatusMessage($vhostConfig)
+                    $vhostConfig->getStatusMessage(),
                 ]);
             }
 
             $table->render();
         }
-    }
-
-    /**
-     * @param $vhostConfig
-     * @return string
-     */
-    private function getStatusMessage(VhostConfiguration $vhostConfig)
-    {
-        $vhostLink = $vhostConfig->getLink();
-        $vhostTarget = $vhostConfig->getTarget();
-        if (!$vhostLink->isLink() && !$vhostLink->isDir() && !$vhostLink->isFile())
-            return '<error>Does not exist</error>';
-        if (!$vhostLink->isLink())
-            return sprintf('<error>Vhost is a %s, not a link</error>', $vhostLink->getType());
-        if ($vhostConfig->isDisabled() && $vhostLink->getLinkTarget() !== $vhostLink->getPathname())
-            return '<error>Not disabled correctly</error>';
-        if (!$vhostConfig->isDisabled() && $vhostLink->getLinkTarget() !== $vhostTarget->getPathname())
-            return '<error>Link target does not match expected target</error>';
-        if ($vhostConfig->isDisabled())
-            return '<comment>Disabled</comment>';
-        return '<info>OK</info>';
     }
 }

@@ -35,10 +35,8 @@ class RemoveCommand extends AbstractMultiVhostsCommand
                 if (!$vhostConfig->getLink()->isLink())
                     throw new NotALinkException($vhostConfig->getLink());
                 if (!$input->getOption('force')) {
-                    if (!$vhostConfig->isDisabled()&&$vhostConfig->getTarget()->getPathname() !== $vhostConfig->getLink()->getLinkTarget())
+                    if ($vhostConfig->getTarget()->getPathname() !== $vhostConfig->getLink()->getLinkTarget())
                         throw new InvalidLinkTargetException($vhostConfig->getLink(), $vhostConfig->getTarget());
-                    elseif($vhostConfig->isDisabled()&&$vhostConfig->getLink()->getLinkTarget() !== $vhostConfig->getLink()->getPathname())
-                        throw new InvalidLinkTargetException($vhostConfig->getLink(), $vhostConfig->getLink());
                 }
                 if(!@unlink($vhostConfig->getLink()))
                     throw new UndeletableFileException($vhostConfig->getLink());

@@ -35,19 +35,19 @@ class EnableCommand extends AbstractMultiVhostsCommand
 
         foreach($vhostConfigs as $vhost => $vhostConfig) {
             /* @var $vhostConfig VhostConfiguration */
-            if($input->getOption('force')||($vhostConfig->getLink()->isLink()&&$vhostConfig->getLink()->getLinkTarget() === $vhostConfig->getLink()->getPathname())) {
+            if($input->getOption('force')||($vhostConfig->getLink()->isLink()&&$vhostConfig->getLink()->getLinkTarget() === $vhostConfig->getTarget()->getPathname())) {
                 if (!@unlink($vhostConfig->getLink()))
                     throw new UndeletableFileException($vhostConfig->getLink());
                 else
                     $output->writeln(sprintf('Removed <info>%s</info>', $vhostConfig->getLink()), OutputInterface::VERBOSITY_VERBOSE);
             } else {
-                throw new InvalidLinkTargetException($vhostConfig->getLink(), $vhostConfig->getLink());
+                throw new InvalidLinkTargetException($vhostConfig->getLink(), $vhostConfig->getTarget());
             }
+            $vhostConfig->setDisabled(false);
             if(!@symlink($vhostConfig->getTarget(), $vhostConfig->getLink())) {
                 throw new UnwritableFileException($vhostConfig->getLink());
             } else {
                 $output->writeln(sprintf('Linked <info>%s</info> to <info>%s</info>', $vhostConfig->getLink(), $vhostConfig->getTarget()), OutputInterface::VERBOSITY_VERBOSE);
-                $vhostConfig->setDisabled(false);
                 $configHelper->getConfiguration()->setVhostConfiguration($vhost, $vhostConfig);
                 $output->writeln(sprintf('Enabled vhost <info>%s</info>', $vhost));
             }

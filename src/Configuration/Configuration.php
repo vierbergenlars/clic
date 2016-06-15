@@ -77,13 +77,14 @@ abstract class Configuration
     protected function getConfigOption(array $path, $default = null, $throws = false)
     {
         $conf = $this->getConfig();
+        $origPath = $path;
         while(($part = array_shift($path)) !== null) {
             if(isset($conf->{$part})) {
                 $conf = $conf->{$part};
             } else {
                 if(!$throws||$default)
                     return $default;
-                throw new MissingConfigurationParameterException(implode('.', $path));
+                throw new MissingConfigurationParameterException(implode('.', $origPath));
             }
         }
         return $conf;

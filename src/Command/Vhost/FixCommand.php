@@ -35,9 +35,7 @@ class FixCommand extends AbstractMultiVhostsCommand
         $vhostsToFix = array_filter($input->getArgument('vhosts'), function(VhostConfiguration $vhostConfig) {
             if(!$vhostConfig->getLink()->isLink())
                 return true;
-            if($vhostConfig->isDisabled()&&$vhostConfig->getLink()->getLinkTarget() !== $vhostConfig->getLink()->getPathname())
-                return true;
-            if(!$vhostConfig->isDisabled()&&$vhostConfig->getLink()->getLinkTarget() !== $vhostConfig->getTarget()->getPathname())
+            if($vhostConfig->getLink()->getLinkTarget() !== $vhostConfig->getTarget()->getPathname())
                 return true;
             return false;
         });

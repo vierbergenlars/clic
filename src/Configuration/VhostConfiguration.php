@@ -33,6 +33,13 @@ class VhostConfiguration
 
     public function getTarget()
     {
+        if($this->isDisabled())
+            return $this->getLink();
+        return $this->getOriginalTarget();
+    }
+
+    public function getOriginalTarget()
+    {
         return new \SplFileInfo($this->config->target);
     }
 
@@ -65,6 +72,31 @@ class VhostConfiguration
     public function setDisabled($disabled)
     {
         $this->config->disabled = $disabled;
+    }
+
+    public function getStatusMessage()
+    {
+        $errorStatus = $this->getErrorStatus();
+        if($errorStatus)
+            return '<error>'.$errorStatus.'</error>';
+        if ($this->isDisabled())
+            return '<comment>Disabled</comment>';
+        return '<info>OK</info>';
+    }
+
+    public function getErrorStatus()
+    {
+        $vhostLink = $this->getLink();
+        $vhostTarget = $this->getTarget();
+        if (!$vhostLink->isLink() && !$vhostLink->isDir() && !$vhostLink->isFile())
+            return 'Does not exist';
+        if (!$vhostLink->isLink())
+            return sprintf('Vhost is a %s, not a link', $vhostLink->getType());
+        if ($this->isDisabled() && $vhostLink->getLinkTarget() !== $vhostLink->getPathname())
+            return 'Not disabled correctly';
+        if (!$this->isDisabled() && $vhostLink->getLinkTarget() !== $vhostTarget->getPathname())
+            return 'Link target does not match expected target';
+        return null;
     }
 
 }

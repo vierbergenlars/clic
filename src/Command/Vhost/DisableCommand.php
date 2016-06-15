@@ -36,7 +36,7 @@ class DisableCommand extends AbstractMultiVhostsCommand
 
         foreach($vhostConfigs as $vhost => $vhostConfig) {
             /* @var $vhostConfig VhostConfiguration */
-            if($vhostConfig->getLink()->isLink()&&$vhostConfig->getLink()->getLinkTarget() === $vhostConfig->getTarget()->getPathname()) {
+            if($input->getOption('force')||($vhostConfig->getLink()->isLink()&&$vhostConfig->getLink()->getLinkTarget() === $vhostConfig->getTarget()->getPathname())) {
                 if (!@unlink($vhostConfig->getLink()))
                     throw new UndeletableFileException($vhostConfig->getLink());
                 else
@@ -44,11 +44,11 @@ class DisableCommand extends AbstractMultiVhostsCommand
             } else {
                 throw new InvalidLinkTargetException($vhostConfig->getLink(), $vhostConfig->getTarget());
             }
-            if(!@symlink($vhostConfig->getLink(), $vhostConfig->getLink())) {
+            $vhostConfig->setDisabled(true);
+            if(!@symlink($vhostConfig->getTarget(), $vhostConfig->getLink())) {
                 throw new UnwritableFileException($vhostConfig->getLink());
             } else {
                 $output->writeln(sprintf('Linked <info>%s</info> to itself', $vhostConfig->getLink()), OutputInterface::VERBOSITY_VERBOSE);
-                $vhostConfig->setDisabled(true);
                 $configHelper->getConfiguration()->setVhostConfiguration($vhost, $vhostConfig);
                 $output->writeln(sprintf('Disabled vhost <info>%s</info>', $vhost));
             }

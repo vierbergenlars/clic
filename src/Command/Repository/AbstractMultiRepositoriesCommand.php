@@ -25,7 +25,7 @@ abstract class AbstractMultiRepositoriesCommand extends Command
         /* @var $configHelper GlobalConfigurationHelper */
 
         $repoConfigs = array_map(function($repoName) use($configHelper) {
-            return $configHelper->getConfiguration()->getRepositoryConfiguration($repoName, true);
+            return $configHelper->getConfiguration()->getRepositoryConfiguration($repoName);
         }, array_combine($input->getArgument('repositories'), $input->getArgument('repositories')));
         if($input->getOption('all')) {
             $repoConfigs = array_merge($repoConfigs, $configHelper->getConfiguration()->getRepositoryConfigurations());

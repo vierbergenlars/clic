@@ -10,12 +10,9 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use vierbergenlars\CliCentral\Configuration\Application;
-use vierbergenlars\CliCentral\Configuration\ApplicationConfiguration;
 use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
 use vierbergenlars\CliCentral\Exception\Configuration\ApplicationExistsException;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSuchApplicationException;
-use vierbergenlars\CliCentral\Exception\File\OutsideConfiguredRootDirectoryException;
-use vierbergenlars\CliCentral\Helper\DirectoryHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use vierbergenlars\CliCentral\Util;
 
@@ -33,8 +30,6 @@ class AddCommand extends Command
     {
         $configHelper = $this->getHelper('configuration');
         /* @var $configHelper GlobalConfigurationHelper */
-        $directoryHelper = $configHelper->getDirectoryHelper();
-        /* @var $directoryHelper DirectoryHelper */
         $processHelper =  $this->getHelper('process');
         /* @var $processHelper ProcessHelper */
 
@@ -44,11 +39,7 @@ class AddCommand extends Command
         } catch(NoSuchApplicationException $ex) {
             // no op
         }
-
-        $application = new ApplicationConfiguration();
-        $application->setPath($directoryHelper->getDirectoryForApplication($input->getArgument('application')));
-        OutsideConfiguredRootDirectoryException::assert($application->getPath(), 'applications-dir', $configHelper->getConfiguration()->getApplicationsDirectory());
-        $application = Application::fromConfig($input->getArgument('application'), $application);
+        $application = Application::create($configHelper->getConfiguration(), $input->getArgument('application'));
 
         if(!$input->getOption('remote')) {
             try {
@@ -80,7 +71,6 @@ class AddCommand extends Command
             $application->setRepository($input->getOption('remote'));
         }
 
-        $configHelper->getConfiguration()->setApplication($input->getArgument('application'), $application);
         $configHelper->getConfiguration()->write();
 
         if(!$application->getRepository()) {

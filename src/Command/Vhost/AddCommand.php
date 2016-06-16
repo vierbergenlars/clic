@@ -5,17 +5,13 @@ namespace vierbergenlars\CliCentral\Command\Vhost;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use vierbergenlars\CliCentral\Configuration\VhostConfiguration;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSuchVhostException;
 use vierbergenlars\CliCentral\Exception\Configuration\VhostExistsException;
-use vierbergenlars\CliCentral\Exception\File\FileExistsException;
-use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
-use vierbergenlars\CliCentral\Exception\File\OutsideConfiguredRootDirectoryException;
-use vierbergenlars\CliCentral\Helper\DirectoryHelper;
+use vierbergenlars\CliCentral\FsUtil;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
-use vierbergenlars\CliCentral\PathUtil;
+
 
 class AddCommand extends Command
 {
@@ -31,61 +27,25 @@ class AddCommand extends Command
     {
         $configHelper = $this->getHelper('configuration');
         /* @var $configHelper GlobalConfigurationHelper */
-        $directoryHelper = $configHelper->getDirectoryHelper();
-        /* @var $directoryHelper DirectoryHelper */
 
-        if($output instanceof ConsoleOutputInterface) {
-            $stderr = $output->getErrorOutput();
-        } else {
-            $stderr = $output;
-        }
         try {
             $configHelper->getConfiguration()->getVhostConfiguration($input->getArgument('vhost'));
             throw new VhostExistsException($input->getArgument('vhost'));
         } catch(NoSuchVhostException $ex) {
             // noop
         }
-
-        $vhostLink = null;
-
-        do {
-            try {
-                $vhostLink = $directoryHelper->getLinkForVhost($input->getArgument('vhost'));
-                if(is_link($vhostLink))
-                    throw new FileExistsException($vhostLink);
-                $notSucceeded = false;
-            } catch(NotADirectoryException $ex) {
-                OutsideConfiguredRootDirectoryException::assert($ex->getFilename(), 'vhosts-dir', $configHelper->getConfiguration()->getVhostsDirectory());
-                mkdir($ex->getFilename(), 0777, true);
-                $stderr->writeln(sprintf('Created directory <info>%s</info>', $ex->getFilename()), OutputInterface::VERBOSITY_VERY_VERBOSE);
-                $notSucceeded = true;
-            }
-        } while($notSucceeded);
-
-        if(!$vhostLink)
-            throw new \LogicException('Could not find vhost link name');
-
-        OutsideConfiguredRootDirectoryException::assert($vhostLink, 'vhosts-dir', $configHelper->getConfiguration()->getVhostsDirectory());
-
         $application = $configHelper->getConfiguration()->getApplication($input->getArgument('application'));
-        $webDir = $application->getWebDirectory();
-
-        $vhostConfig = new VhostConfiguration();
-        $vhostConfig->setApplication($input->getArgument('application'));
-        $vhostConfig->setTarget($webDir);
-        $vhostConfig->setLink($vhostLink);
+        $vhostConfig = VhostConfiguration::create($configHelper->getConfiguration(), $input->getArgument('vhost'), $application);
 
         if(!is_dir($vhostConfig->getLink()->getPath())) {
-            $stderr->writeln(sprintf('Created directory <info>%s</info>', $vhostConfig->getLink()->getPath()), OutputInterface::VERBOSITY_VERY_VERBOSE);
-            mkdir($vhostConfig->getLink()->getPath(), 0777, true);
+            FsUtil::mkdir($vhostConfig->getLink()->getPath(), true);
+            $output->writeln(sprintf('Created directory <info>%s</info>', $vhostConfig->getLink()->getPath()), OutputInterface::VERBOSITY_VERY_VERBOSE);
         }
 
-        if(!@symlink($vhostConfig->getTarget(), $vhostConfig->getLink()))
-            throw new \RuntimeException(sprintf('Failed to link "%s" to "%s": %s', $vhostConfig->getLink(), $vhostConfig->getTarget(), error_get_last()['message']));
+        FsUtil::symlink($vhostConfig->getTarget(), $vhostConfig->getLink());
 
         $output->writeln(sprintf('Created vhost <info>%s</info> for <info>%s</info> (<comment>%s</comment>)', $input->getArgument('vhost'), $vhostConfig->getApplication(), $vhostConfig->getTarget()));
 
-        $configHelper->getConfiguration()->setVhostConfiguration($input->getArgument('vhost'), $vhostConfig);
         $configHelper->getConfiguration()->write();
     }
 

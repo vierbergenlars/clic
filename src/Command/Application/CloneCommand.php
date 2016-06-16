@@ -9,14 +9,15 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Process\ProcessBuilder;
+use vierbergenlars\CliCentral\Configuration\Application;
 use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
+use vierbergenlars\CliCentral\Exception\Configuration\NoSuchRepositoryException;
 use vierbergenlars\CliCentral\Exception\File\FileExistsException;
-use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
 use vierbergenlars\CliCentral\Exception\File\NotEmptyException;
+use vierbergenlars\CliCentral\FsUtil;
 use vierbergenlars\CliCentral\Helper\DirectoryHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use vierbergenlars\CliCentral\Util;
@@ -43,43 +44,32 @@ class CloneCommand extends Command
         /* @var $questionHelper QuestionHelper */
         $directoryHelper = $configHelper->getDirectoryHelper();
         /* @var $directoryHelper DirectoryHelper */
-        if($output instanceof ConsoleOutputInterface) {
-            $stderr = $output->getErrorOutput();
-        } else {
-            $stderr = $output;
-        }
 
         if(!$input->getArgument('application')) {
             $input->setArgument('application', basename($input->getArgument('repository'), '.git'));
         }
 
-        $repositoryConfiguration = $configHelper->getConfiguration()->getRepositoryConfiguration($input->getArgument('repository'));
+        try {
+            $repositoryConfiguration = $configHelper->getConfiguration()->getRepositoryConfiguration($input->getArgument('repository'));
+        } catch(NoSuchRepositoryException $ex) {
+            $repositoryConfiguration = null;
+        }
 
         $repositoryParts = Util::parseRepositoryUrl($input->getArgument('repository'));
         if(!Util::isSshRepositoryUrl($repositoryParts)) {
             $input->setOption('no-deploy-key', true);
         }
 
-        /*
-         * Create application directory
-         */
-        do {
-            try {
-                $directoryHelper->getDirectoryForApplication($input->getArgument('application'));
-                $notSucceeded = false;
-            } catch(NotADirectoryException $ex) {
-                mkdir($ex->getFilename(), 0777, true);
-                $stderr->writeln(sprintf('Created directory <info>%s</info>', $ex->getFilename()), OutputInterface::VERBOSITY_VERY_VERBOSE);
-                $notSucceeded = true;
-            }
-        } while($notSucceeded);
-
-        if(count(scandir($directoryHelper->getDirectoryForApplication($input->getArgument('application'))))>2) {
-            throw new NotEmptyException($directoryHelper->getDirectoryForApplication($input->getArgument('application')));
+        $application = Application::create($configHelper->getConfiguration(), $input->getArgument('application'));
+        if(!is_dir($application->getPath())) {
+            FsUtil::mkdir($application->getPath(), true);
+            $output->writeln(sprintf('Created directory <info>%s</info>', $application->getPath()), OutputInterface::VERBOSITY_VERY_VERBOSE);
         }
 
+        NotEmptyException::assert($application->getPath());
+
         if(!$repositoryConfiguration&&!$input->getOption('no-deploy-key')) {
-            $stderr->writeln('You do not have a deploy key configured for this repository.', OutputInterface::VERBOSITY_VERBOSE);
+            $output->writeln('You do not have a deploy key configured for this repository.', OutputInterface::VERBOSITY_VERBOSE);
             $repositoryConfiguration = new RepositoryConfiguration();
             $repositoryConfiguration->setSshAlias(sha1($input->getArgument('repository')).'-'.$input->getArgument('application'));
             /*
@@ -94,16 +84,16 @@ class CloneCommand extends Command
                         '--target-repository' => $input->getArgument('repository'),
                         '--print-public-key' => true,
                     ]), $output);
-                $repositoryConfiguration = $configHelper->getConfiguration()->getRepositoryConfiguration($input->getArgument('repository'), true);
+                $repositoryConfiguration = $configHelper->getConfiguration()->getRepositoryConfiguration($input->getArgument('repository'));
             } catch(FileExistsException $ex) {
                 $repositoryConfiguration->setIdentityFile($ex->getFilename());
-                $stderr->writeln(sprintf('Key <info>%s</info> already exists. Not generating a new one.', $ex->getFilename()));
+                $output->writeln(sprintf('Key <info>%s</info> already exists. Not generating a new one.', $ex->getFilename()));
             }
 
             /*
              * Ask to add it as a deploy key to the repo
              */
-            $stderr->writeln('<comment>Please set the public key printed above as a deploy key for the repository</comment>');
+            $output->writeln('<comment>Please set the public key printed above as a deploy key for the repository</comment>');
             while(!$questionHelper->ask($input, $output, new ConfirmationQuestion('Is the deploy key uploaded?')));
         }
 
@@ -121,16 +111,16 @@ class CloneCommand extends Command
         /*
          * Run a git clone for the application
          */
-        $prevVerbosity = $stderr->getVerbosity();
-        $stderr->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
+        $prevVerbosity = $output->getVerbosity();
+        $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
         $gitClone = ProcessBuilder::create([
             'git',
             'clone',
             Util::replaceRepositoryUrl($repositoryParts, $repositoryConfiguration),
             $directoryHelper->getDirectoryForApplication($input->getArgument('application')),
         ])->setTimeout(null)->getProcess();
-        $processHelper->mustRun($stderr, $gitClone);
-        $stderr->setVerbosity($prevVerbosity);
+        $processHelper->mustRun($output, $gitClone);
+        $output->setVerbosity($prevVerbosity);
 
         $this->getApplication()
             ->find('application:add')
@@ -153,5 +143,6 @@ class CloneCommand extends Command
                     ],
                 ]), $output);
         }
+        return 0;
     }
 }

@@ -11,10 +11,10 @@ use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSshRepositoryException;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSuchRepositoryException;
 use vierbergenlars\CliCentral\Exception\Configuration\RepositoryExistsException;
-use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
 use vierbergenlars\CliCentral\Exception\File\UnwritableFileException;
+use vierbergenlars\CliCentral\FsUtil;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use vierbergenlars\CliCentral\Util;
 
@@ -35,7 +35,7 @@ class AddCommand extends Command
         /* @var $configHelper GlobalConfigurationHelper */
 
         try {
-            $configHelper->getConfiguration()->getRepositoryConfiguration($input->getArgument('repository'), true);
+            $configHelper->getConfiguration()->getRepositoryConfiguration($input->getArgument('repository'));
             throw new RepositoryExistsException($input->getArgument('repository'));
         } catch(NoSuchRepositoryException $ex) {
             // no op
@@ -53,7 +53,7 @@ class AddCommand extends Command
 
         $sshConfigFile = new \SplFileInfo($configHelper->getConfiguration()->getSshDirectory() . '/config');
         if(!file_exists($sshConfigFile->getPathname()))
-            @touch($sshConfigFile->getPathname());
+            FsUtil::touch($sshConfigFile->getPathname());
         if (!$sshConfigFile->isFile())
             throw new NotAFileException($sshConfigFile);
         if (!$sshConfigFile->isReadable())
@@ -61,11 +61,11 @@ class AddCommand extends Command
         if (!$sshConfigFile->isWritable())
             throw new UnwritableFileException($sshConfigFile);
 
-        list($repoUser, $repoHost, ) = preg_split('/@|:/', $input->getArgument('repository'));
+        $repoParts = Util::parseRepositoryUrl($input->getArgument('repository'));
         $sshConfigFp = fopen($sshConfigFile, 'a');
         $lines = PHP_EOL.'Host '.$repositoryConfig->getSshAlias().PHP_EOL
-            .'HostName '.$repoHost.PHP_EOL
-            .'User '.$repoUser.PHP_EOL
+            .'HostName '.$repoParts['host'].PHP_EOL
+            .'User '.$repoParts['user'].PHP_EOL
             .'IdentityFile '.$repositoryConfig->getIdentityFile().PHP_EOL;
 
         if(fwrite($sshConfigFp, $lines) !== strlen($lines))

@@ -13,11 +13,7 @@
           "type": "object",
           "description": "Application settings",
           "additionalProperties": false,
-          "required": ["path"],
           "properties": {
-            "path": {
-              "type": "string"
-            },
             "repository": {
               "type": "string"
             },
@@ -37,16 +33,10 @@
         ".*": {
           "type": "object",
           "description": "Vhost settings",
-          "required": ["application", "link", "target"],
+          "required": ["application"],
           "additionalProperties": false,
           "properties": {
             "application": {
-              "type": "string"
-            },
-            "link": {
-              "type": "string"
-            },
-            "target": {
               "type": "string"
             },
             "disabled": {

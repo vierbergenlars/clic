@@ -7,8 +7,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use vierbergenlars\CliCentral\Configuration\VhostConfiguration;
 use vierbergenlars\CliCentral\Exception\File\InvalidLinkTargetException;
-use vierbergenlars\CliCentral\Exception\File\UndeletableFileException;
-use vierbergenlars\CliCentral\Exception\File\UnwritableFileException;
+use vierbergenlars\CliCentral\FsUtil;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
 class EnableCommand extends AbstractMultiVhostsCommand
@@ -36,21 +35,15 @@ class EnableCommand extends AbstractMultiVhostsCommand
         foreach($vhostConfigs as $vhost => $vhostConfig) {
             /* @var $vhostConfig VhostConfiguration */
             if($input->getOption('force')||($vhostConfig->getLink()->isLink()&&$vhostConfig->getLink()->getLinkTarget() === $vhostConfig->getTarget()->getPathname())) {
-                if (!@unlink($vhostConfig->getLink()))
-                    throw new UndeletableFileException($vhostConfig->getLink());
-                else
-                    $output->writeln(sprintf('Removed <info>%s</info>', $vhostConfig->getLink()), OutputInterface::VERBOSITY_VERBOSE);
+                FsUtil::unlink($vhostConfig->getLink());
+                $output->writeln(sprintf('Removed <info>%s</info>', $vhostConfig->getLink()), OutputInterface::VERBOSITY_VERBOSE);
             } else {
                 throw new InvalidLinkTargetException($vhostConfig->getLink(), $vhostConfig->getTarget());
             }
             $vhostConfig->setDisabled(false);
-            if(!@symlink($vhostConfig->getTarget(), $vhostConfig->getLink())) {
-                throw new UnwritableFileException($vhostConfig->getLink());
-            } else {
-                $output->writeln(sprintf('Linked <info>%s</info> to <info>%s</info>', $vhostConfig->getLink(), $vhostConfig->getTarget()), OutputInterface::VERBOSITY_VERBOSE);
-                $configHelper->getConfiguration()->setVhostConfiguration($vhost, $vhostConfig);
-                $output->writeln(sprintf('Enabled vhost <info>%s</info>', $vhost));
-            }
+            FsUtil::symlink($vhostConfig->getTarget(), $vhostConfig->getLink());
+            $output->writeln(sprintf('Linked <info>%s</info> to <info>%s</info>', $vhostConfig->getLink(), $vhostConfig->getTarget()), OutputInterface::VERBOSITY_VERBOSE);
+            $output->writeln(sprintf('Enabled vhost <info>%s</info>', $vhost));
         }
 
         $configHelper->getConfiguration()->write();

@@ -10,7 +10,6 @@ use vierbergenlars\CliCentral\Configuration\ApplicationConfiguration;
 use vierbergenlars\CliCentral\Configuration\VhostConfiguration;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSuchRepositoryException;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
-use vierbergenlars\CliCentral\PathUtil;
 use vierbergenlars\CliCentral\Util;
 
 class ShowCommand extends AbstractMultiApplicationsCommand
@@ -24,16 +23,14 @@ class ShowCommand extends AbstractMultiApplicationsCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $configHelper = $this->getHelper('configuration');
-        /* @var $configHelper GlobalConfigurationHelper */
         if(count($input->getArgument('applications')) == 1&&!$input->getOption('all')) {
             $applicationConfig = current($input->getArgument('applications'));
             /* @var $applicationConfig Application */
             $output->writeln(sprintf('Path: <comment>%s</comment>', $applicationConfig->getPath()));
             $output->writeln(sprintf('Repository: <info>%s</info>', $this->getRepositoryName($applicationConfig)));
-            foreach($this->getLinkedVhosts($applicationConfig->getName()) as $vhostName => $vhostConfig) {
+            foreach($this->getLinkedVhosts($applicationConfig->getName()) as $vhostConfig) {
                 /* @var $vhostConfig VhostConfiguration */
-                $output->writeln(sprintf('Vhost: <info>%s</info> (%s)', $vhostName, $vhostConfig->getStatusMessage()));
+                $output->writeln(sprintf('Vhost: <info>%s</info> (%s)', $vhostConfig->getName(), $vhostConfig->getStatusMessage()));
             }
             $output->writeln(sprintf('Status: %s', $this->getStatusMessage($applicationConfig)));
         } else {
@@ -41,13 +38,15 @@ class ShowCommand extends AbstractMultiApplicationsCommand
             $table = new Table($output);
             $table->setHeaders(['Application', 'Repository', 'Vhosts', 'Status']);
 
-            foreach($applicationConfigs as $appName => $applicationConfig) {
+            foreach($applicationConfigs as $applicationConfig) {
                 /* @var $applicationConfig Application */
+                $appName = $applicationConfig->getName();
 
                 $vhostMessage = [];
                 $vhosts = $this->getLinkedVhosts($appName);
-                foreach($vhosts as $vhostName => $vhostConfig) {
+                foreach($vhosts as $vhostConfig) {
                     /* @var $vhostConfig VhostConfiguration */
+                    $vhostName = $vhostConfig->getName();
                     if($vhostConfig->getErrorStatus())
                         $style = 'error';
                     elseif($vhostConfig->isDisabled())
@@ -78,17 +77,7 @@ class ShowCommand extends AbstractMultiApplicationsCommand
         $path = new \SplFileInfo($applicationConfig->getPath());
         if(!$path->isDir())
             return '<error>Not a directory</error>';
-        if(!$this->isAppInAppdir($applicationConfig))
-            return '<comment>Outside application directory</comment>';
         return '<info>OK</info>';
-    }
-
-    private function isAppInAppdir(ApplicationConfiguration $applicationConfiguration)
-    {
-        $configHelper = $this->getHelper('configuration');
-        /* @var $configHelper GlobalConfigurationHelper */
-        $appDir = $configHelper->getConfiguration()->getApplicationsDirectory();
-        return PathUtil::isSubDirectory($applicationConfiguration->getPath(), $appDir);
     }
 
     private function getLinkedVhosts($appName)
@@ -110,7 +99,7 @@ class ShowCommand extends AbstractMultiApplicationsCommand
         if (!Util::isSshRepositoryUrl($repoName))
             return $repoName;
         try {
-            $repoConfig = $configHelper->getConfiguration()->getRepositoryConfiguration($repoName, true);
+            $repoConfig = $configHelper->getConfiguration()->getRepositoryConfiguration($repoName);
             if(is_file($repoConfig->getIdentityFile()))
                 return $repoName;
         } catch(NoSuchRepositoryException $ex) {

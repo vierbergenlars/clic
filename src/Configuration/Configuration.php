@@ -2,12 +2,11 @@
 
 namespace vierbergenlars\CliCentral\Configuration;
 
+use JsonSchema\Validator;
 use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
-use vierbergenlars\CliCentral\Exception\File\UnwritableFileException;
-use vierbergenlars\CliCentral\Exception\JsonValidationException;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
-use JsonSchema\Validator;
+use vierbergenlars\CliCentral\Exception\JsonValidationException;
 
 abstract class Configuration
 {
@@ -69,12 +68,10 @@ abstract class Configuration
 
     /**
      * @param array $path
-     * @param mixed $default
-     * @param bool $throws
      * @return mixed
      * @throws MissingConfigurationParameterException
      */
-    protected function getConfigOption(array $path, $default = null, $throws = false)
+    public function getConfigOption(array $path)
     {
         $conf = $this->getConfig();
         $origPath = $path;
@@ -82,15 +79,13 @@ abstract class Configuration
             if(isset($conf->{$part})) {
                 $conf = $conf->{$part};
             } else {
-                if(!$throws||$default)
-                    return $default;
                 throw new MissingConfigurationParameterException(implode('.', $origPath));
             }
         }
         return $conf;
     }
 
-    protected function setConfigOption(array $path, $value)
+    public function setConfigOption(array $path, $value)
     {
         $conf = $this->getConfig();
         $c=&$conf;
@@ -103,7 +98,7 @@ abstract class Configuration
         $this->config = $conf;
     }
 
-    protected function removeConfigOption(array $path)
+    public function removeConfigOption(array $path)
     {
         $conf = $this->getConfig();
         $c=&$conf;

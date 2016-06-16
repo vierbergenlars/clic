@@ -9,9 +9,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Configuration\VhostConfiguration;
 use vierbergenlars\CliCentral\Exception\File\FileException;
-use vierbergenlars\CliCentral\Exception\File\FileExistsException;
-use vierbergenlars\CliCentral\Exception\File\InvalidLinkTargetException;
-use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
+use vierbergenlars\CliCentral\Exception\File\FilesystemOperationFailedException;
+use vierbergenlars\CliCentral\FsUtil;
 
 class FixCommand extends AbstractMultiVhostsCommand
 {
@@ -26,58 +25,44 @@ class FixCommand extends AbstractMultiVhostsCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $configHelper = $this->getHelper('configuration');
-        /* @var $configHelper GlobalConfigurationHelper */
         $processHelper = $this->getHelper('process');
         /* @var $processHelper ProcessHelper */
 
 
         $vhostsToFix = array_filter($input->getArgument('vhosts'), function(VhostConfiguration $vhostConfig) {
-            if(!$vhostConfig->getLink()->isLink())
-                return true;
-            if($vhostConfig->getLink()->getLinkTarget() !== $vhostConfig->getTarget()->getPathname())
-                return true;
-            return false;
+            return $vhostConfig->getErrorStatus() !== null;
         });
 
         $exitCode = 0;
 
-        foreach($vhostsToFix as $vhost => $vhostConfig) {
+        foreach($vhostsToFix as $vhostConfig) {
             /* @var $vhostConfig VhostConfiguration */
-            $output->writeln(sprintf('<bg=blue;fg=white> FIX </> <fg=blue>%s</>', $vhost));
+            $output->writeln(sprintf('<bg=blue;fg=white> FIX </> <fg=blue>%s</>', $vhostConfig->getName()));
             try {
                 $vhostLink = $vhostConfig->getLink();
                 if($input->getOption('force')) {
                     if($vhostLink->isLink()||$vhostLink->isFile()) {
-                        if(!@unlink($vhostLink)) {
-                            $output->writeln(sprintf('<bg=red;fg=white> ERR </> %s', error_get_last()['message']));
-                            throw new FileExistsException($vhostLink);
-                        } else {
-                            $output->writeln(sprintf('<bg=green;fg=white> OUT </> Removed file "%s"', $vhostLink), OutputInterface::VERBOSITY_VERBOSE);
-                        }
+                        FsUtil::unlink($vhostLink);
+                        $output->writeln(sprintf('<bg=green;fg=white> OUT </> Removed file "%s"', $vhostLink), OutputInterface::VERBOSITY_VERBOSE);
                     } elseif($vhostLink->isDir()) {
-                        if(!@rmdir($vhostLink)) {
-                            $output->writeln(sprintf('<bg=red;fg=white> ERR </> %s', error_get_last()['message']));
+                        try {
+                            FsUtil::rmdir($vhostLink);
+                            $output->writeln(sprintf('<bg=green;fg=white> OUT </> Removed directory "%s"', $vhostLink), OutputInterface::VERBOSITY_VERBOSE);
+                        } catch(FilesystemOperationFailedException $ex) {
                             if(!$input->getOption('recursive'))
-                                throw new FileExistsException($vhostLink);
+                                throw $ex;
                             $process = ProcessBuilder::create([
                                 'rm',
                                 '-rf',
                                 $vhostLink->getPathname(),
                             ])->getProcess();
                             $processHelper->mustRun($output, $process);
-                        } else {
-                            $output->writeln(sprintf('<bg=green;fg=white> OUT </> Removed directory "%s"', $vhostLink), OutputInterface::VERBOSITY_VERBOSE);
                         }
                     }
                 }
-                if (!@symlink($vhostConfig->getTarget(), $vhostLink)) {
-                    $output->writeln(sprintf('<bg=red;fg=white> ERR </> %s', error_get_last()['message']));
-                    throw new InvalidLinkTargetException($vhostLink, $vhostConfig->getTarget());
-                } else {
-                    $output->writeln(sprintf('<bg=green;fg=white> OUT </> Relinked "%s" to "%s"', $vhostLink, $vhostConfig->getTarget()), OutputInterface::VERBOSITY_VERBOSE);
-                }
-                $output->writeln(sprintf('<bg=green;fg=white> RES </> <fg=green>Fixed vhost %s</>', $vhost));
+                FsUtil::symlink($vhostConfig->getTarget(), $vhostLink);
+                $output->writeln(sprintf('<bg=green;fg=white> OUT </> Relinked "%s" to "%s"', $vhostLink, $vhostConfig->getTarget()), OutputInterface::VERBOSITY_VERBOSE);
+                $output->writeln(sprintf('<bg=green;fg=white> RES </> <fg=green>Fixed vhost %s</>', $vhostConfig->getName()));
             } catch(FileException $ex) {
                 $output->writeln(sprintf('<bg=red;fg=white> RES </> <fg=red>%s</>', $ex->getMessage()));
                 $exitCode = 1;

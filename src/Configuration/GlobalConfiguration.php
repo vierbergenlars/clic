@@ -34,7 +34,11 @@ class GlobalConfiguration extends Configuration
      */
     public function getApplicationsDirectory()
     {
-        $appDir = $this->getConfigOption(['config', 'applications-dir'], getenv('HOME')?getenv('HOME').'/apps': null, true);
+        try {
+            $appDir = $this->getConfigOption(['config', 'applications-dir']);
+        } catch(MissingConfigurationParameterException $ex) {
+            $appDir =  getenv('HOME') ? getenv('HOME') . '/apps' : null;
+        }
         if(!is_dir($appDir))
             throw new NotADirectoryException($appDir);
         return $appDir;
@@ -52,7 +56,11 @@ class GlobalConfiguration extends Configuration
      */
     public function getVhostsDirectory()
     {
-        $vhostDir = $this->getConfigOption(['config', 'vhosts-dir'], getenv('HOME')?getenv('HOME').'/public_html':null, true);
+        try {
+            $vhostDir = $this->getConfigOption(['config', 'vhosts-dir']);
+        } catch(MissingConfigurationParameterException $ex) {
+            $vhostDir = getenv('HOME') ? getenv('HOME') . '/public_html' : null;
+        }
         if(!is_dir($vhostDir))
             throw new NotADirectoryException($vhostDir);
         return $vhostDir;
@@ -87,7 +95,11 @@ class GlobalConfiguration extends Configuration
      */
     public function getSshDirectory()
     {
-        $sshDir = $this->getConfigOption(['config', 'ssh-dir'], getenv('HOME')?getenv('HOME').'/.ssh':null, true);
+        try {
+            $sshDir = $this->getConfigOption(['config', 'ssh-dir']);
+        } catch(MissingConfigurationParameterException $ex) {
+            $sshDir =  getenv('HOME') ? getenv('HOME') . '/.ssh' : null;
+        }
         if(!is_dir($sshDir))
             throw new NotADirectoryException($sshDir);
         return $sshDir;
@@ -106,24 +118,27 @@ class GlobalConfiguration extends Configuration
      */
     public function getRepositoryConfigurations()
     {
-        return array_map(function($config) {
-            return new RepositoryConfiguration($config);
-        }, (array)$this->getConfigOption(['repositories'], []));
+        try {
+            return array_map(function ($config) {
+                return new RepositoryConfiguration($config);
+            }, (array)$this->getConfigOption(['repositories']));
+        } catch(MissingConfigurationParameterException $ex) {
+            return [];
+        }
     }
 
     /**
      * @param $repositoryName
-     * @return RepositoryConfiguration|null
-     *
+     * @return RepositoryConfiguration
      */
-    public function getRepositoryConfiguration($repositoryName, $throws = false)
+    public function getRepositoryConfiguration($repositoryName)
     {
-        $config = $this->getConfigOption(['repositories', $repositoryName]);
-        if($config)
+        try {
+            $config = $this->getConfigOption(['repositories', $repositoryName]);
             return new RepositoryConfiguration($config);
-        if($throws)
-            throw new NoSuchRepositoryException($repositoryName);
-        return null;
+        } catch(MissingConfigurationParameterException $ex) {
+            throw new NoSuchRepositoryException($repositoryName, $ex);
+        }
     }
 
     public function setRepositoryConfiguration($repositoryName, RepositoryConfiguration $conf)
@@ -138,22 +153,24 @@ class GlobalConfiguration extends Configuration
 
     public function getVhostConfigurations()
     {
-        return array_map(function($config) {
-            return new VhostConfiguration($config);
-        }, (array)$this->getConfigOption(['vhosts'], []));
+        try {
+            $vhosts = array_keys((array)$this->getConfigOption(['vhosts']));
+            return array_map(function ($name) {
+                return new VhostConfiguration($this, $name);
+            }, $vhosts);
+        } catch(MissingConfigurationParameterException $ex) {
+            return [];
+        }
     }
 
     public function getVhostConfiguration($vhostName)
     {
-        $config = $this->getConfigOption(['vhosts', $vhostName]);
-        if($config)
-            return new VhostConfiguration($config);
-        throw new NoSuchVhostException($vhostName);
-    }
-
-    public function setVhostConfiguration($vhostName, VhostConfiguration $conf)
-    {
-        $this->setConfigOption(['vhosts', $vhostName], $conf->getConfig());
+        try {
+            $this->getConfigOption(['vhosts', $vhostName]);
+            return new VhostConfiguration($this, $vhostName);
+        } catch(MissingConfigurationParameterException $ex) {
+            throw new NoSuchVhostException($vhostName, $ex);
+        }
     }
 
     public function removeVhostConfiguration($vhostName)
@@ -163,25 +180,24 @@ class GlobalConfiguration extends Configuration
 
     public function getApplications()
     {
-        $applications = [];
-        foreach((array)$this->getConfigOption(['applications'], []) as $appName => $appConfig) {
-            $applications[$appName] = new Application($appName, $appConfig);
+        try {
+            $applications = array_keys((array)$this->getConfigOption(['applications']));
+            return array_map(function ($appName) {
+                return new Application($this, $appName);
+            }, $applications);
+        } catch(MissingConfigurationParameterException $ex) {
+            return [];
         }
-        return $applications;
     }
 
     public function getApplication($appName)
     {
         try {
-            return new Application($appName, $this->getConfigOption(['applications', $appName], null, true));
+            $this->getConfigOption(['applications', $appName]);
+            return new Application($this, $appName);
         } catch(MissingConfigurationParameterException $ex) {
             throw new NoSuchApplicationException($appName, $ex);
         }
-    }
-
-    public function setApplication($appName, ApplicationConfiguration $applicationConfiguration)
-    {
-        $this->setConfigOption(['applications', $appName], $applicationConfiguration->getConfig());
     }
 
     public function removeApplication($appName)

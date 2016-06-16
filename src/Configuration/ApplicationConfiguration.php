@@ -2,23 +2,41 @@
 
 namespace vierbergenlars\CliCentral\Configuration;
 
+use vierbergenlars\CliCentral\Exception\Configuration\ApplicationExistsException;
+use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
+use vierbergenlars\CliCentral\Exception\Configuration\NoSuchApplicationException;
+use vierbergenlars\CliCentral\Exception\File\OutsideConfiguredRootDirectoryException;
+
 class ApplicationConfiguration
 {
-    private $config;
+    /**
+     * @var GlobalConfiguration
+     */
+    private $globalConfiguration;
+    private $name;
 
-    public function __construct(\stdClass $config = null)
+    public function __construct(GlobalConfiguration $globalConfiguration, $name)
     {
-        if(!$config)
-            $config = new \stdClass();
-        $this->config = $config;
+        $this->globalConfiguration = $globalConfiguration;
+        $this->name = $name;
+    }
+
+    public static function create(GlobalConfiguration $globalConfiguration, $name)
+    {
+        try {
+            $globalConfiguration->getApplication($name);
+            throw new ApplicationExistsException($name);
+        } catch(NoSuchApplicationException $ex) {
+            return new static($globalConfiguration, $name);
+        }
     }
 
     /**
-     * @return \stdClass
+     * @return mixed
      */
-    public function getConfig()
+    public function getName()
     {
-        return $this->config;
+        return $this->name;
     }
 
     /**
@@ -26,17 +44,9 @@ class ApplicationConfiguration
      */
     public function getPath()
     {
-        return $this->config->path;
-    }
-
-    /**
-     * @param \SplFileInfo|string $path
-     */
-    public function setPath($path)
-    {
-        if($path instanceof \SplFileInfo)
-            $path = $path->getPathname();
-        $this->config->path = $path;
+        $path = $this->globalConfiguration->getApplicationsDirectory().'/'.$this->getName();
+        OutsideConfiguredRootDirectoryException::assert($path, 'applications-dir', $this->globalConfiguration->getApplicationsDirectory());
+        return $path;
     }
 
     /**
@@ -44,7 +54,11 @@ class ApplicationConfiguration
      */
     public function getRepository()
     {
-        return @$this->config->repository?:null;
+        try {
+            return $this->globalConfiguration->getConfigOption(['applications', $this->getName(), 'repository']);
+        } catch(MissingConfigurationParameterException $ex) {
+            return null;
+        }
     }
 
     /**
@@ -53,9 +67,9 @@ class ApplicationConfiguration
     public function setRepository($repository)
     {
         if(!$repository)
-            unset($this->config->repository);
+            $this->globalConfiguration->removeConfigOption(['applications', $this->getName(), 'repository']);
         else
-            $this->config->repository = $repository;
+            $this->globalConfiguration->setConfigOption(['applications', $this->getName(), 'repository'], $repository);
     }
 
     /**
@@ -63,7 +77,11 @@ class ApplicationConfiguration
      */
     public function getOverrides()
     {
-        return @$this->config->overrides?:new \stdClass();
+        try {
+            return $this->globalConfiguration->getConfigOption(['applications', $this->getName(), 'overrides']);
+        } catch(MissingConfigurationParameterException $ex) {
+            return new \stdClass();
+        }
     }
 
     /**
@@ -72,8 +90,8 @@ class ApplicationConfiguration
     public function setOverrides(\stdClass $overrides = null)
     {
         if(!$overrides)
-            unset($this->config->overrides);
+            $this->globalConfiguration->removeConfigOption(['applications', $this->getName(), 'overrides']);
         else
-            $this->config->overrides = $overrides;
+            $this->globalConfiguration->setConfigOption(['applications', $this->getName(), 'overrides'], $overrides);
     }
 }

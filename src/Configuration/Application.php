@@ -2,46 +2,23 @@
 
 namespace vierbergenlars\CliCentral\Configuration;
 
+use Symfony\Component\Process\Process;
 use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
-use vierbergenlars\CliCentral\Exception\NoScriptException;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
-use Symfony\Component\Process\Process;
+use vierbergenlars\CliCentral\Exception\NoScriptException;
 
 class Application extends ApplicationConfiguration
 {
-    /**
-     * @var string
-     */
-    private $appName;
-
     /**
      * @var LocalApplicationConfiguration
      */
     private $configuration;
 
-    /**
-     * Application constructor.
-     * @param string $appName
-     * @param \stdClass $config
-     */
-    public function __construct($appName, \stdClass $config)
+    public static function fromConfig(GlobalConfiguration $globalConfiguration, ApplicationConfiguration $config)
     {
-        if(!isset($config->path))
-            throw new \LogicException('Cannot create application without path');
-        parent::__construct($config);
-        $this->appName = $appName;
-    }
-
-    public static function fromConfig($appName, ApplicationConfiguration $config)
-    {
-        return new self($appName, $config->getConfig());
-    }
-
-    public function getName()
-    {
-        return $this->appName;
+        return new self($globalConfiguration, $config->getName());
     }
 
     protected function getConfigurationFile()

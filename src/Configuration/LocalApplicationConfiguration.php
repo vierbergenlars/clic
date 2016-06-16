@@ -25,7 +25,7 @@ class LocalApplicationConfiguration extends Configuration
     }
 
 
-    protected function getConfigOption(array $path, $default = null, $throws = false)
+    public function getConfigOption(array $path)
     {
         $origPath = $path;
         $conf = $this->overrides;
@@ -33,7 +33,7 @@ class LocalApplicationConfiguration extends Configuration
             if(isset($conf->{$part})) {
                 $conf = $conf->{$part};
             } else {
-                return parent::getConfigOption($origPath, $default, $throws);
+                return parent::getConfigOption($origPath);
             }
         }
         return $conf;
@@ -47,7 +47,7 @@ class LocalApplicationConfiguration extends Configuration
     public function getScriptCommand($scriptName)
     {
         try {
-            $script = $this->getConfigOption(['scripts', $scriptName], null, true);
+            $script = $this->getConfigOption(['scripts', $scriptName]);
         } catch(MissingConfigurationParameterException $ex) {
             throw new NoScriptException($scriptName, $ex);
         }
@@ -56,7 +56,7 @@ class LocalApplicationConfiguration extends Configuration
 
     public function getWebDir()
     {
-        return $this->getConfigOption(['web-dir'], null, true);
+        return $this->getConfigOption(['web-dir']);
     }
 
 }

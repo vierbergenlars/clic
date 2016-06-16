@@ -9,7 +9,7 @@ use vierbergenlars\CliCentral\Configuration\VhostConfiguration;
 use vierbergenlars\CliCentral\Exception\File\FileException;
 use vierbergenlars\CliCentral\Exception\File\InvalidLinkTargetException;
 use vierbergenlars\CliCentral\Exception\File\NotALinkException;
-use vierbergenlars\CliCentral\Exception\File\UndeletableFileException;
+use vierbergenlars\CliCentral\FsUtil;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
 class RemoveCommand extends AbstractMultiVhostsCommand
@@ -29,7 +29,7 @@ class RemoveCommand extends AbstractMultiVhostsCommand
 
         $exitCode = 0;
 
-        foreach($input->getArgument('vhosts') as $vhost => $vhostConfig) {
+        foreach($input->getArgument('vhosts') as $vhostConfig) {
             /* @var $vhostConfig VhostConfiguration */
             try {
                 if (!$vhostConfig->getLink()->isLink())
@@ -38,12 +38,11 @@ class RemoveCommand extends AbstractMultiVhostsCommand
                     if ($vhostConfig->getTarget()->getPathname() !== $vhostConfig->getLink()->getLinkTarget())
                         throw new InvalidLinkTargetException($vhostConfig->getLink(), $vhostConfig->getTarget());
                 }
-                if(!@unlink($vhostConfig->getLink()))
-                    throw new UndeletableFileException($vhostConfig->getLink());
-                $output->writeln(sprintf('Removed vhost <info>%s</info>', $vhost));
-                $configHelper->getConfiguration()->removeVhostConfiguration($vhost);
+                FsUtil::unlink($vhostConfig->getLink());
+                $output->writeln(sprintf('Removed vhost <info>%s</info>', $vhostConfig->getName()));
+                $configHelper->getConfiguration()->removeVhostConfiguration($vhostConfig->getName());
             } catch(FileException $ex) {
-                $output->writeln(sprintf('<error>Could not remove vhost "%s": %s</error>', $vhost, $ex->getMessage()));
+                $output->writeln(sprintf('<error>Could not remove vhost "%s": %s</error>', $vhostConfig->getName(), $ex->getMessage()));
                 $exitCode = 1;
             }
         }

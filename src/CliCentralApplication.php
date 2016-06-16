@@ -2,12 +2,6 @@
 
 namespace vierbergenlars\CliCentral;
 
-use Symfony\Component\Console\Exception\ExceptionInterface;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
-use vierbergenlars\CliCentral\Command;
-use vierbergenlars\CliCentral\Helper\DirectoryHelper;
-use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Helper\DebugFormatterHelper;
 use Symfony\Component\Console\Helper\FormatterHelper;
@@ -15,6 +9,8 @@ use Symfony\Component\Console\Helper\HelperSet;
 use Symfony\Component\Console\Helper\ProcessHelper;
 use Symfony\Component\Console\Helper\SymfonyQuestionHelper;
 use Symfony\Component\Console\Input\InputOption;
+use vierbergenlars\CliCentral\Command;
+use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
 class CliCentralApplication extends Application
 {

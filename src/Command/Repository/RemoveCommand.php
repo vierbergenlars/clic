@@ -2,18 +2,16 @@
 
 namespace vierbergenlars\CliCentral\Command\Repository;
 
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
-use vierbergenlars\CliCentral\Exception\Configuration\RepositoryExistsException;
-use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
+use vierbergenlars\CliCentral\Exception\File\FilesystemOperationFailedException;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
 use vierbergenlars\CliCentral\Exception\File\UnwritableFileException;
+use vierbergenlars\CliCentral\FsUtil;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
 class RemoveCommand extends AbstractMultiRepositoriesCommand
@@ -75,9 +73,11 @@ class RemoveCommand extends AbstractMultiRepositoriesCommand
      */
     private function unlinkFile(OutputInterface $output, $file)
     {
-        if (@unlink($file))
+        try {
+            FsUtil::unlink($file);
             $output->writeln(sprintf('Removed file <info>%s</info>', $file));
-        else
-            $output->writeln(sprintf('<error>Could not remove file %s</error>', $file));
+        } catch(FilesystemOperationFailedException $ex) {
+            $output->writeln(sprintf('<error>Could not remove file %s: %s</error>', $ex->getFilename(), $ex->getMessage()));
+        }
     }
 }

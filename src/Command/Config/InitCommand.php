@@ -2,17 +2,16 @@
 
 namespace vierbergenlars\CliCentral\Command\Config;
 
-use Symfony\Component\Console\Input\InputOption;
-use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
-use vierbergenlars\CliCentral\Exception\File\FileException;
-use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
-use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Exception\InvalidOptionException;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
+use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
+use vierbergenlars\CliCentral\Exception\File\FileException;
+use vierbergenlars\CliCentral\FsUtil;
+use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
 class InitCommand extends Command
 {
@@ -69,10 +68,10 @@ class InitCommand extends Command
         $question = new Question($questionText, $directory);
         $question->setValidator(function($dir) use ($input, $output) {
             if(!is_dir($dir))
-                if($input->getOption('no-create-missing')||!@mkdir($dir, 0777, true))
-                    throw new NotADirectoryException($dir);
-                else
+                if(!$input->getOption('no-create-missing')) {
+                    FsUtil::mkdir($dir, true);
                     $output->writeln(sprintf('Created directory <info>%s</info>', $dir), OutputInterface::VERBOSITY_VERBOSE);
+                }
             return $dir;
         });
         $questionHelper = $this->getHelper('question');

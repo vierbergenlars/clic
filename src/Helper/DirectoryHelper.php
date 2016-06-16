@@ -2,16 +2,11 @@
 
 namespace vierbergenlars\CliCentral\Helper;
 
-use vierbergenlars\CliCentral\Configuration\Application;
-use vierbergenlars\CliCentral\Configuration\Environment;
+
 use vierbergenlars\CliCentral\Configuration\GlobalConfiguration;
-use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
 use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
 use vierbergenlars\CliCentral\Exception\File\NotALinkException;
-use Symfony\Component\Console\Exception\InvalidArgumentException;
-use Symfony\Component\Console\Helper\Helper;
-use Symfony\Component\Console\Input\InputAwareInterface;
-use Symfony\Component\Console\Input\InputInterface;
+
 
 class DirectoryHelper
 {

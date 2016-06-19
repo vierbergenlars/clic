@@ -90,6 +90,15 @@
           "default": "$HOME/.ssh"
         }
       }
+    },
+    "global-vars": {
+      "type": "object",
+      "description": "This is a hash of variable names (keys) and values (values).",
+      "patternProperties": {
+        "^[a-zA-Z_][a-zA-Z_0-9]*$": {
+          "type": "string"
+        }
+      }
     }
   }
 }

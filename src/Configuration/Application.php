@@ -2,8 +2,10 @@
 
 namespace vierbergenlars\CliCentral\Configuration;
 
+use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\ProcessBuilder;
+use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
 use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
@@ -57,15 +59,24 @@ class Application extends ApplicationConfiguration
     public function getScriptProcess($scriptName)
     {
         try {
-            $env = [];
+            $phpFinder = new PhpExecutableFinder();
+            $env = [
+                'CLIC_APPNAME' => $this->getName(),
+                'CLIC' => implode(' ', [
+                    $phpFinder->find(),
+                    $_SERVER['argv'][0],
+                ]),
+                'CLIC_CONFIG' => realpath($this->globalConfiguration->getConfigFile()),
+            ];
+            foreach($this->getVariables() as $key => $value) {
+                $env['CLIC_'.$key] = $value;
+            }
             foreach($_SERVER as $key=>$value) {
                 $ev = getenv($key);
                 if($ev)
                     $env[$key] = $ev;
             }
-            return new Process($this->getConfiguration()->getScriptCommand($scriptName), $this->getPath(), array_merge($env, [
-                'CLIC_NONINTERACTIVE' => '1',
-            ]), null, null);
+            return new Process($this->getConfiguration()->getScriptCommand($scriptName), $this->getPath(), $env, null, null);
         } catch(NoScriptException $ex) {
             throw new NoScriptException($this->getName().':'.$scriptName);
         }
@@ -79,4 +90,26 @@ class Application extends ApplicationConfiguration
         return $webDir;
     }
 
+    public function getVariable($variableName)
+    {
+        try {
+            return $this->getConfiguration()->getVariable($variableName);
+        } catch(MissingConfigurationParameterException $ex) {
+            try {
+                return $this->globalConfiguration->getGlobalVariable($variableName);
+            } catch(MissingConfigurationParameterException $ex2) {
+                throw $ex;
+            }
+        }
+    }
+
+    public function setVariable($variableName, $value)
+    {
+        $this->setOverride(['vars', $variableName], $value);
+    }
+
+    public function getVariables()
+    {
+        return array_merge($this->globalConfiguration->getGlobalVariables(), $this->getConfiguration()->getVariables());
+    }
 }

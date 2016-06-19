@@ -22,7 +22,8 @@ class CliCentralApplication extends Application
     protected function getDefaultInputDefinition()
     {
         $def = parent::getDefaultInputDefinition();
-        $def->addOption(new InputOption('config', 'c', InputOption::VALUE_REQUIRED, 'Set configuration file to use.', getenv('HOME')?(getenv('HOME').'/.clic-settings.json'):null));
+        $default = $this->getConfigDefault();
+        $def->addOption(new InputOption('config', 'c', InputOption::VALUE_REQUIRED, 'Set configuration file to use.', $default));
         return $def;
     }
 
@@ -59,6 +60,20 @@ class CliCentralApplication extends Application
             new Command\Application\ShowCommand(),
             new Command\Application\CloneCommand(),
             new Command\Application\ExecCommand(),
+            new Command\Application\VariableGetCommand(),
+            new Command\Application\VariableSetCommand(),
         ]);
+    }
+
+    /**
+     * @return null|string
+     */
+    private function getConfigDefault()
+    {
+        if(getenv('CLIC_CONFIG'))
+            return getenv('CLIC_CONFIG');
+        if(getenv('HOME'))
+            return getenv('HOME').'/.clic-settings.json';
+        return null;
     }
 }

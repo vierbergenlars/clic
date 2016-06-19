@@ -12,7 +12,7 @@ class ApplicationConfiguration
     /**
      * @var GlobalConfiguration
      */
-    private $globalConfiguration;
+    protected $globalConfiguration;
     private $name;
 
     public function __construct(GlobalConfiguration $globalConfiguration, $name)
@@ -93,5 +93,11 @@ class ApplicationConfiguration
             $this->globalConfiguration->removeConfigOption(['applications', $this->getName(), 'overrides']);
         else
             $this->globalConfiguration->setConfigOption(['applications', $this->getName(), 'overrides'], $overrides);
+    }
+
+    public function setOverride(array $path, $value)
+    {
+        array_unshift($path, 'applications', $this->getName(), 'overrides');
+        $this->globalConfiguration->setConfigOption($path, $value);
     }
 }

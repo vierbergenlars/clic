@@ -21,6 +21,16 @@ class GlobalConfiguration extends Configuration
         }
     }
 
+    public function getGlobalVariables()
+    {
+        return (array)$this->getConfigOption(['global-vars']);
+    }
+
+    public function getGlobalVariable($varName)
+    {
+        return $this->getConfigOption(['global-vars', $varName]);
+    }
+
 
     protected function getSchema()
     {

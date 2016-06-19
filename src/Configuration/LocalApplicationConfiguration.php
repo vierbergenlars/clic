@@ -36,6 +36,11 @@ class LocalApplicationConfiguration extends Configuration
                 return parent::getConfigOption($origPath);
             }
         }
+        if(is_array($conf)||$conf instanceof \stdClass) {
+            $conf = array_merge((array)$conf, (array)parent::getConfigOption($origPath));
+            if($conf instanceof \stdClass)
+                $conf = (object)$conf;
+        }
         return $conf;
     }
 
@@ -57,6 +62,20 @@ class LocalApplicationConfiguration extends Configuration
     public function getWebDir()
     {
         return $this->getConfigOption(['web-dir']);
+    }
+
+    public function getVariables()
+    {
+        try {
+            return (array)$this->getConfigOption(['vars']);
+        } catch(MissingConfigurationParameterException $ex) {
+            return [];
+        }
+    }
+
+    public function getVariable($variableName)
+    {
+        return $this->getConfigOption(['vars', $variableName]);
     }
 
 }

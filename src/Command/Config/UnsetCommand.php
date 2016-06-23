@@ -15,6 +15,19 @@ class UnsetCommand extends Command
     {
         $this->setName('config:unset')
             ->addArgument('parameter', InputArgument::REQUIRED, 'Configuration parameter to unset')
+            ->setDescription('Removes configuration values')
+            ->setHelp(<<<'EOF'
+The <info>%command.name%</info> command removes the configuration parameters from the global configuration file:
+
+  <info>%command.full_name% config[ssh-dir]</info>
+
+<fg=red><options=underscore;bold>WARNING:</> This is a very powerful command, misconfiguration of parameters may break other commands.
+Using this command is almost certainly not the right way to change settings; have another look at the other commands.</>
+
+To read configuration parameters, use the <info>config:get</info> command.
+To set configuration parameters, use the <info>config:set</info> command.
+EOF
+            )
         ;
     }
 

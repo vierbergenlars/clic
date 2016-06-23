@@ -17,7 +17,6 @@ class GlobalConfiguration extends Configuration
             parent::__construct($configFile);
         } catch(NotAFileException $e) {
             $this->config = new \stdClass();
-            $this->setConfigOption(['config'], new \stdClass());
         }
     }
 

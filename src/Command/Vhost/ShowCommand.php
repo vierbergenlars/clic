@@ -14,6 +14,16 @@ class ShowCommand extends AbstractMultiVhostsCommand
     {
         parent::configure();
         $this->setName('vhost:show')
+            ->setDescription('Shows vhost information')
+            ->setHelp(<<<'EOF'
+The <info>%command.name%</info> command shows information about one or more vhosts:
+
+  <info>%command.full_name% -A</info>
+
+If more than one vhost is passed on the commandline, a table with basic information is shown.
+All details for an vhost are shown if exactly one vhost name is used as argument.
+EOF
+            )
         ;
     }
 

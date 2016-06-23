@@ -28,6 +28,34 @@ class GenerateCommand extends Command
             ->addOption('comment', 'C', InputOption::VALUE_REQUIRED, 'Comment to add to the generated key file')
             ->addOption('target-repository', 'R', InputOption::VALUE_REQUIRED, 'Repository to link the generated key to')
             ->addOption('print-public-key', 'P', InputOption::VALUE_NONE, 'Show the generated public key')
+            ->setDescription('Generates deploy key to a repository')
+            ->setHelp(<<<'EOF'
+The <info>%command.name%</info> command generates an deploy ssh key:
+
+  <info>%command.full_name%</info>
+
+The keyfile will have a randomly generated name starting with <info>id_rsa-</info>
+and is located in the configured <comment>ssh-dir</comment>.
+The target location of the keyfile can be specified as an argument:
+
+  <info>%command.full_name% ~/.ssh/id_rsa-authserver</info>
+
+A comment can be added to the ssh key with the <comment>--comment|-C</comment> option:
+
+  <info>%command.full_name% ~/.ssh/id_rsa-authserver --comment="Authserver deploy key"</info>
+
+Assigning a target repository with <comment>--target-repository|-R</comment> automatically adds the
+generated key to that repository (see the <info>repository:add</info> command).
+
+To show the public part of the generated key (handy to upload it as a deploy key to the repository host),
+use the <comment>--print-public-key|-P</comment> option.
+
+  <info>%command.full_name% --comment="Authserver deploy key" --target-repository="git@github.com:vierbergenlars/authserver.git" --print-public-key</info>
+
+To add an existing ssh key to a repository, use the <info>repository:add</info> command.
+To remove an ssh key from a repository, use the <info>repository:remove</info> command.
+EOF
+            )
         ;
     }
 

@@ -20,6 +20,16 @@ class RemoveCommand extends AbstractMultiRepositoriesCommand
     {
         parent::configure();
         $this->setName('repository:remove')
+            ->setDescription('Remove deploy key from a repository')
+            ->setHelp(<<<'EOF'
+The <info>%command.name%</info> command removes a deploy key from one or more repositories:
+
+  <info>%command.full_name% git@github.com:vierbergenlars/authserver.git</info>
+
+To generate an ssh key for a repository, use the <info>repository:generate-key</info> command.
+To add an existing ssh key to a repository, use the <info>repository:add</info> command.
+EOF
+            )
         ;
     }
 

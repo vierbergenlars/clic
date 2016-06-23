@@ -17,6 +17,24 @@ class DisableCommand extends AbstractMultiVhostsCommand
         parent::configure();
         $this->setName('vhost:disable')
             ->addOption('force', null, InputOption::VALUE_NONE, 'Skip checks before overwriting symlink')
+            ->setDescription('Disables one or more vhosts')
+            ->setHelp(<<<'EOF'
+The <info>%command.name%</info> command disables access to a vhost:
+
+  <info>%command.full_name% auth.vbgn.be</info>
+
+This command changes the symbolic link of the vhost to an inaccessible location, so it can no longer be accessed by
+the webserver.
+
+To prevent accidental removal of an externally changed symlink, its status and target directory are first verified
+to match its expected values. To override these checks, use the <comment>--force</comment> option.
+
+  <info>%command.full_name% -A --force</info>
+
+To enable a vhost, use the <info>vhost:enable</info> command.
+To remove a vhost, use the <info>vhost:remove</info> command.
+EOF
+            )
         ;
     }
 
@@ -33,7 +51,7 @@ class DisableCommand extends AbstractMultiVhostsCommand
             });
         }
 
-        foreach($vhostConfigs as $vhost => $vhostConfig) {
+        foreach($vhostConfigs as $vhostConfig) {
             /* @var $vhostConfig VhostConfiguration */
             if($input->getOption('force')||($vhostConfig->getLink()->isLink()&&$vhostConfig->getLink()->getLinkTarget() === $vhostConfig->getTarget()->getPathname())) {
                 FsUtil::unlink($vhostConfig->getLink());
@@ -44,7 +62,7 @@ class DisableCommand extends AbstractMultiVhostsCommand
             $vhostConfig->setDisabled(true);
             FsUtil::symlink($vhostConfig->getTarget(), $vhostConfig->getLink());
             $output->writeln(sprintf('Linked <info>%s</info> to itself', $vhostConfig->getLink()), OutputInterface::VERBOSITY_VERBOSE);
-            $output->writeln(sprintf('Disabled vhost <info>%s</info>', $vhost));
+            $output->writeln(sprintf('Disabled vhost <info>%s</info>', $vhostConfig->getName()));
         }
 
         $configHelper->getConfiguration()->write();

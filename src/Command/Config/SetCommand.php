@@ -16,6 +16,19 @@ class SetCommand extends Command
         $this->setName('config:set')
             ->addArgument('parameter', InputArgument::REQUIRED, 'Configuration parameter to set')
             ->addArgument('value', InputArgument::REQUIRED, 'Value to set configuration parameter to')
+            ->setDescription('Sets configuration values')
+            ->setHelp(<<<'EOF'
+The <info>%command.name%</info> command sets the configuration parameters from the global configuration file:
+
+  <info>%command.full_name% config[ssh-dir] ~/.ssh</info>
+
+<fg=red><options=underscore;bold>WARNING:</> This is a very powerful command, misconfiguration of parameters may break other commands.
+Using this command is almost certainly not the right way to change settings; have another look at the other commands.</>
+
+To read configuration parameters, use the <info>config:get</info> command.
+To remove configuration parameters, use the <info>config:unset</info> command.
+EOF
+            )
         ;
     }
 

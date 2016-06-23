@@ -19,7 +19,26 @@ class FixCommand extends AbstractMultiVhostsCommand
         parent::configure();
         $this->setName('vhost:fix')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Remove existing files if they prevent the vhost from being fixed.')
-            ->addOption('recursive', 'r', InputOption::VALUE_NONE, 'Remove existing directories recursively if they prevent vhost from being fixed.');
+            ->addOption('recursive', 'r', InputOption::VALUE_NONE, 'Remove existing directories recursively if they prevent vhost from being fixed.')
+            ->setDescription('Fixes one or more vhosts')
+            ->setHelp(<<<'EOF'
+The <info>%command.name%</info> command fixes vhosts that do not match their configured settings:
+
+  <info>%command.full_name% -A</info>
+
+This command changes the symbolic link of the vhost to its correct location, so it can be accessed again by the webserver.
+
+To prevent accidental modification of externally changed files (or directories that take the place of the original symlink),
+no attempt is made to remove files or directories, unless the <comment>--force|-f</comment> option is used.
+
+Directories containing files are only removed when also the <comment>--recursive|-r</comment> option is used.
+
+  <info>%command.full_name% auth.vbgn.be --force --recursive</info>
+
+To enable a vhost, use the <info>vhost:enable</info> command.
+To remove a vhost, use the <info>vhost:remove</info> command.
+EOF
+            )
         ;
     }
 

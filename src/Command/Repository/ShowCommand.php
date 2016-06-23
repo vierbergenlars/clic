@@ -15,6 +15,16 @@ class ShowCommand extends AbstractMultiRepositoriesCommand
     {
         parent::configure();
         $this->setName('repository:show')
+            ->setDescription('Shows repository information')
+            ->setHelp(<<<'EOF'
+The <info>%command.name%</info> command shows information about one or more repositories:
+
+  <info>%command.full_name% -A</info>
+
+If more than one repository is passed on the commandline, a table with basic information is shown.
+All details for an repository are shown if exactly one repository name is used as argument.
+EOF
+            )
         ;
     }
 

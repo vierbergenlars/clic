@@ -18,6 +18,16 @@ class ShowCommand extends AbstractMultiApplicationsCommand
     {
         parent::configure();
         $this->setName('application:show')
+            ->setDescription('Shows application information')
+            ->setHelp(<<<'EOF'
+The <info>%command.name%</info> command shows information about one or more applications:
+
+  <info>%command.full_name% -A</info>
+
+If more than one application is passed on the commandline, a table with basic information is shown.
+All details for an application are shown if exactly one application name is used as argument.
+EOF
+            )
         ;
     }
 

@@ -17,6 +17,27 @@ class VariableGetCommand extends Command
             ->addArgument('application', InputArgument::REQUIRED)
             ->addArgument('variable', InputArgument::REQUIRED)
             ->addOption('filter', null, InputOption::VALUE_REQUIRED|InputOption::VALUE_IS_ARRAY, 'Function(s) used to filter parameter values')
+            ->setDescription('Shows variable value for an application')
+            ->setHelp(<<<'EOF'
+The <info>%command.name%</info> command shows the value of a variable for an application:
+
+  <info>%command.full_name% prod/authserver database_name</info>
+
+All variables contain plain text, arrays or objects are not permitted.
+Variables are first looked up in the application's <comment>.cliconfig.json</comment> (taking into account overrides).
+If the variable is not found there, the variable is looked up in the <info>global-vars</info> section of the global configuration file.
+
+Use the <comment>--filter</comment> option to process variables before outputting them.
+
+  <info>%command.full_name% prod/authserver database_name --filter=json_encode</info>
+
+Multiple filters can be chained, and must accept the output of the previous function as first and only argument.
+The first filter in the chain must accept the type of the variable (string, integer or \stdClass for objects).
+The last filter in the chain must return a string, array, \stdClass or \Traversable of values to be printed, or null to print nothing.
+
+To set variables, use the <info>application:variable:set</info> command.
+EOF
+            )
         ;
     }
 

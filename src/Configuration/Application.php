@@ -61,21 +61,18 @@ class Application extends ApplicationConfiguration
         try {
             $phpFinder = new PhpExecutableFinder();
             $env = [
-                'CLIC_APPNAME' => $this->getName(),
-                'CLIC' => implode(' ', [
-                    $phpFinder->find(),
-                    $_SERVER['argv'][0],
-                ]),
-                'CLIC_CONFIG' => realpath($this->globalConfiguration->getConfigFile()),
             ];
-            foreach($this->getVariables() as $key => $value) {
-                $env['CLIC_'.$key] = $value;
-            }
             foreach($_SERVER as $key=>$value) {
                 $ev = getenv($key);
                 if($ev)
                     $env[$key] = $ev;
             }
+            $env['CLIC_APPNAME'] = $this->getName();
+            $env['CLIC'] = implode(' ', [
+                $phpFinder->find(),
+                $_SERVER['argv'][0],
+            ]);
+            $env['CLIC_CONFIG'] = realpath($this->globalConfiguration->getConfigFile());
             return new Process($this->getConfiguration()->getScriptCommand($scriptName), $this->getPath(), $env, null, null);
         } catch(NoScriptException $ex) {
             throw new NoScriptException($this->getName().':'.$scriptName);

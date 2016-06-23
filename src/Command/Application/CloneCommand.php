@@ -31,6 +31,30 @@ class CloneCommand extends Command
             ->addArgument('application', InputArgument::OPTIONAL, 'The name of the application to clone to. (Defaults to repository name)')
             ->addOption('no-deploy-key', null, InputOption::VALUE_NONE, 'Do not generate or use a deploy key')
             ->addOption('no-scripts', null, InputOption::VALUE_NONE, 'Do not run post-clone script')
+            ->setDescription('Create a new application from remote repository')
+            ->setHelp(<<<'EOF'
+The <info>%command.name%</info> command creates a new application from a remote repository.
+
+  <info>%command.full_name% https://github.com/vierbergenlars/authserver</info>
+
+By default, the application name and location is derived from the repository URL.
+The application name can be changed by adding a second argument:
+
+  <info>%command.full_name% https://github.com/vierbergenlars/authserver prod/authserver</info>
+
+The location of the application is relative to the <comment>applications-dir</comment> configuration option.
+
+When cloning using ssh, a deploy key is used for that repository, unless the <comment>--no-deploy-key</comment> option is used.
+If there is no deploy key available yet, one is generated and displayed automatically. (See the <info>repository:generate-key</info> command)
+It should be uploaded as a read-only deploy key in the interface of the repository host.
+
+After cloning the application is completed, the <info>post-clone</info> script of the repository is executed.
+(For more informations on scripts, see the <info>application:execute</info> command)
+Automatically running of this script can be prevented by using the <comment>--no-scripts</comment> option.
+
+To add an existing application, use the <info>application:add</info> command.
+EOF
+            )
         ;
     }
 

@@ -23,9 +23,24 @@ class AddCommand extends Command
     protected function configure()
     {
         $this->setName('repository:add')
-            ->addArgument('repository', InputArgument::REQUIRED, 'The repository to add the ssh key and alias to')
+            ->addArgument('repository', InputArgument::REQUIRED, 'The repository to add the ssh key to')
             ->addArgument('key', InputArgument::REQUIRED, 'The private key file to add to the repository')
             ->addOption('alias', null, InputOption::VALUE_REQUIRED, 'The alias to use for the repository')
+            ->setDescription('Add deploy key to a repository')
+            ->setHelp(<<<'EOF'
+The <info>%command.name%</info> command registers an existing ssh key as deploy key for a repository:
+
+  <info>%command.full_name% prod/authserver ~/.ssh/id_rsa-authserver</info>
+
+By default, the ssh alias is a randomly generated hexadecimal string, but it can be
+set with the <comment>--alias</comment> option:
+
+  <info>%command.full_name% prod/authserver ~/.ssh/id_rsa-authserver --alias=authserver-git</info>
+
+To generate an ssh key for a repository, use the <info>repository:generate-key</info> command.
+To remove an ssh key from a repository, use the <info>repository:remove</info> command.
+EOF
+            )
         ;
     }
 

@@ -20,7 +20,28 @@ class VariableSetCommand extends Command
             ->addArgument('variable', InputArgument::REQUIRED)
             ->addArgument('value', InputArgument::REQUIRED)
             ->addOption('description', null, InputOption::VALUE_REQUIRED)
-            ->addOption('default', null, InputOption::VALUE_REQUIRED)
+            ->addOption('default', null, InputOption::VALUE_REQUIRED, 'Default value')
+            ->setDescription('Sets variable value for an application')
+            ->setHelp(<<<'EOF'
+The <info>%command.name%</info> command sets the value of a variable for an application:
+
+  <info>%command.full_name% prod/authserver database_name authserver</info>
+
+All variables contain plain text, arrays or objects are not permitted.
+Variables are stored in the overrides definition for the application.
+
+If the <comment>value</comment> argument is not filled and the command is run in interactive mode,
+a value for the variable will be asked interactively to the user.
+
+When asking for a value interactively:
+ * the prompt to the user can be modified with the <comment>--description</comment> option.
+ * the default value for the value can be set with the <comment>--default</comment> option.
+
+  <info>%command.full_name% prod/authserver database_name --description="Application database name" --default=authserver</info>
+
+To read variables, use the <info>application:variable:get</info> command.
+EOF
+            )
         ;
     }
 

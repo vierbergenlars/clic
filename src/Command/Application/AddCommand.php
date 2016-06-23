@@ -23,6 +23,22 @@ class AddCommand extends Command
         $this->setName('application:add')
             ->addArgument('application', InputArgument::REQUIRED, 'Application name')
             ->addOption('remote', null, InputOption::VALUE_REQUIRED, 'git remote for the application (will be guessed if empty)')
+            ->setDescription('Add an existing application')
+            ->setHelp(<<<'EOF'
+The <info>%command.name%</info> command adds an application to the list of managed applications:
+
+  <info>%command.full_name% authserver</info>
+
+You can also set the reference repository by using the <comment>--remote</comment> option:
+
+  <info>%command.full_name% authserver --remote=https://github.com/vierbergenlars/authserver</info>
+
+The location of the application is relative to the <comment>applications-dir</comment> configuration option.
+If no reference repository is passed as option, an attempt is made to automatically detect it.
+
+To create a new application from a remote repository, use the <info>application:clone</info> command.
+EOF
+            )
         ;
     }
 

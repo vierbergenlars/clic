@@ -20,6 +20,28 @@ class GetCommand extends Command
         $this->setName('config:get')
             ->addArgument('parameter', InputArgument::OPTIONAL, 'Configuration parameter to get')
             ->addOption('filter', null, InputOption::VALUE_REQUIRED|InputOption::VALUE_IS_ARRAY, 'Function(s) used to filter parameter values')
+            ->setDescription('Shows configuration value')
+            ->setHelp(<<<'EOF'
+The <info>%command.name%</info> command shows the configuration parameters from the global configuration file:
+
+  <info>%command.full_name% config[applications-dir]</info>
+
+Use the <comment>--filter</comment> option to process configuration parameters before outputting them.
+
+  <info>%command.full_name% applications --filter=json_encode</info>
+
+Multiple filters can be chained, and must accept the output of the previous function as first and only argument.
+The first filter in the chain must accept the type of the variable (string, integer or \stdClass for objects).
+The last filter in the chain must return a string, array, \stdClass or \Traversable of values to be printed, or null to print nothing.
+
+A more advanced use case shows a list of all registered applications:
+
+  <info>%command.full_name% applications --filter=get_object_vars --filter=array_keys --filter=json_encode</info>
+
+To set configuration parameters, use the <info>config:set</info> command.
+To remove configuration parameters, use the <info>config:unset</info> command.
+EOF
+            )
         ;
     }
 

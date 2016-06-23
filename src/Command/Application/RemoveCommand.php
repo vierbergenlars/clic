@@ -16,7 +16,20 @@ class RemoveCommand extends AbstractMultiApplicationsCommand
     {
         parent::configure();
         $this->setName('application:remove')
-            ->addOption('purge', null, InputOption::VALUE_NONE, 'Permanently remove the application directory');
+            ->addOption('purge', null, InputOption::VALUE_NONE, 'Permanently remove the application directory')
+            ->setDescription('Removes an application')
+            ->setHelp(<<<'EOF'
+The <info>%command.name%</info> command removes an application to the list of managed applications:
+
+  <info>%command.full_name% authserver</info>
+
+To also remove the application directory and its contents, use the <comment>--purge</comment> option:
+
+  <info>%command.full_name% authserver --purge</info>
+
+EOF
+            )
+        ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

@@ -42,9 +42,10 @@ The applications are executed with the application directory as working director
 all paths are relative to the application directory.
 
 Environment variables are passed through, with following additions/changes:
-  <info>CLIC</info>         Contains the commandline to execute the currenty running program.
-  <info>CLIC_APPNAME</info> Contains the name of the application as passed on the commandline.
-  <info>CLIC_CONFIG</info>  The file where global configuration is stored.
+  <info>CLIC</info>               Contains the commandline to execute the currenty running program.
+  <info>CLIC_APPNAME</info>       Contains the name of the application as passed on the commandline.
+  <info>CLIC_CONFIG</info>        The file where global configuration is stored.
+  <info>CLIC_APPCONFIG_DIR</info> The directory that contains the applications <comment>.cliconfig.json</comment> file.
 
 Standard in/out/err are not attached to the terminal, commands that require user input
 have to explicitly use <comment>/dev/tty</comment> as in or output.

@@ -8,6 +8,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use vierbergenlars\CliCentral\Configuration\Application;
 use vierbergenlars\CliCentral\Configuration\ApplicationConfiguration;
 use vierbergenlars\CliCentral\Configuration\VhostConfiguration;
+use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSuchRepositoryException;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use vierbergenlars\CliCentral\Util;
@@ -38,6 +39,11 @@ EOF
             /* @var $applicationConfig Application */
             $output->writeln(sprintf('Path: <comment>%s</comment>', $applicationConfig->getPath()));
             $output->writeln(sprintf('Repository: <info>%s</info>', $this->getRepositoryName($applicationConfig)));
+            try {
+                $output->writeln(sprintf('Configuration file override: <comment>%s</comment>', $applicationConfig->getConfigurationFileOverride()));
+            } catch(MissingConfigurationParameterException $ex) {
+                // noop
+            }
             foreach($this->getLinkedVhosts($applicationConfig->getName()) as $vhostConfig) {
                 /* @var $vhostConfig VhostConfiguration */
                 $output->writeln(sprintf('Vhost: <info>%s</info> (%s)', $vhostConfig->getName(), $vhostConfig->getStatusMessage()));
@@ -86,8 +92,16 @@ EOF
     {
         $path = new \SplFileInfo($applicationConfig->getPath());
         if(!$path->isDir())
-            return '<error>Not a directory</error>';
-        return '<info>OK</info>';
+            $status = '<error>Not a directory</error>';
+        else
+            $status = '<info>OK</info>';
+        try {
+            $applicationConfig->getConfigurationFileOverride();
+            $status.= ', <comment>Application config file override active</comment>';
+        } catch(MissingConfigurationParameterException $ex) {
+            // noop
+        }
+        return $status;
     }
 
     private function getLinkedVhosts($appName)

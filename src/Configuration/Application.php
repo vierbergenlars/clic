@@ -25,7 +25,11 @@ class Application extends ApplicationConfiguration
 
     protected function getConfigurationFile()
     {
-        return new \SplFileInfo($this->getPath().'/.cliconfig.json');
+        try {
+            return $this->getConfigurationFileOverride();
+        } catch(MissingConfigurationParameterException $ex) {
+            return new \SplFileInfo($this->getPath() . '/.cliconfig.json');
+        }
     }
 
     protected function getConfiguration()
@@ -68,6 +72,7 @@ class Application extends ApplicationConfiguration
                 $_SERVER['argv'][0],
             ]);
             $env['CLIC_CONFIG'] = realpath($this->globalConfiguration->getConfigFile());
+            $env['CLIC_APPCONFIG_DIR'] = realpath($this->getConfigurationFile()->getPath());
             return new Process($this->getConfiguration()->getScriptCommand($scriptName), $this->getPath(), $env, null, null);
         } catch(NoScriptException $ex) {
             throw new NoScriptException($this->getName().':'.$scriptName);

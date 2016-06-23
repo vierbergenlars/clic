@@ -62,6 +62,7 @@ class CliCentralApplication extends Application
             new Command\Application\ExecCommand(),
             new Command\Application\VariableGetCommand(),
             new Command\Application\VariableSetCommand(),
+            new Command\Application\OverrideConfigCommand(),
         ]);
     }
 

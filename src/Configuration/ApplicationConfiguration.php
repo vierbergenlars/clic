@@ -74,6 +74,22 @@ class ApplicationConfiguration
     }
 
     /**
+     * @return \SplFileInfo
+     */
+    public function getConfigurationFileOverride()
+    {
+        return new \SplFileInfo($this->globalConfiguration->getConfigOption(['applications', $this->getName(), 'cliconfig-override']));
+    }
+
+    public function setConfigurationFileOverride($configurationFileOverride)
+    {
+        if($configurationFileOverride)
+            $this->globalConfiguration->setConfigOption(['applications', $this->getName(), 'cliconfig-override'], $configurationFileOverride);
+        else
+            $this->globalConfiguration->removeConfigOption(['applications', $this->getName(), 'cliconfig-override']);
+    }
+
+    /**
      * @return \stdClass
      */
     public function getOverrides()

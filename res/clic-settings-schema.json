@@ -17,6 +17,10 @@
             "repository": {
               "type": "string"
             },
+            "cliconfig-override": {
+              "type": "string",
+              "description": "Overrides cliconfig with a file from another directory"
+            },
             "overrides": {
               "type": "object",
               "description": "Overrides for the applications .cliconfig.json"

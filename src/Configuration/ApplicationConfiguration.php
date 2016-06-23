@@ -27,6 +27,7 @@ class ApplicationConfiguration
             $globalConfiguration->getApplication($name);
             throw new ApplicationExistsException($name);
         } catch(NoSuchApplicationException $ex) {
+            $globalConfiguration->setConfigOption(['applications', $name], new \stdClass);
             return new static($globalConfiguration, $name);
         }
     }

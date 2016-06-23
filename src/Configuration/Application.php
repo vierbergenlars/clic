@@ -25,12 +25,7 @@ class Application extends ApplicationConfiguration
 
     protected function getConfigurationFile()
     {
-        $file = new \SplFileInfo($this->getPath().'/.cliconfig.json');
-        if(!$file->isFile())
-            throw new NotAFileException($file);
-        if(!$file->isReadable())
-            throw new UnreadableFileException($file);
-        return $file;
+        return new \SplFileInfo($this->getPath().'/.cliconfig.json');
     }
 
     protected function getConfiguration()

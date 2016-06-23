@@ -3,6 +3,8 @@
 namespace vierbergenlars\CliCentral\Configuration;
 
 use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
+use vierbergenlars\CliCentral\Exception\File\FileException;
+use vierbergenlars\CliCentral\Exception\JsonValidationException;
 use vierbergenlars\CliCentral\Exception\NoScriptException;
 
 class LocalApplicationConfiguration extends Configuration
@@ -14,7 +16,16 @@ class LocalApplicationConfiguration extends Configuration
 
     public function __construct(\SplFileInfo $configFile, \stdClass $overrides)
     {
-        parent::__construct($configFile);
+        try {
+            parent::__construct($configFile);
+        } catch(FileException $fileException) {
+            $this->config = $overrides;
+            try {
+                $this->validate();
+            } catch(JsonValidationException $ex) {
+                throw $fileException;
+            }
+        }
 
         $this->overrides = $overrides;
     }

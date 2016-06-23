@@ -7,6 +7,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
+use vierbergenlars\CliCentral\Util;
 
 class SetCommand extends Command
 {
@@ -22,7 +23,7 @@ class SetCommand extends Command
     {
         $configHelper = $this->getHelper('configuration');
         /* @var $configHelper GlobalConfigurationHelper */
-        $configHelper->getConfiguration()->setConfig($input->getArgument('parameter'), $input->getArgument('value'));
+        $configHelper->getConfiguration()->setConfigOption(Util::createPropertyPath($input->getArgument('parameter')), $input->getArgument('value'));
         $configHelper->getConfiguration()->write();
     }
 

@@ -82,23 +82,6 @@ class GlobalConfiguration extends Configuration
     }
 
     /**
-     * @param string $option
-     * @param string $value
-     */
-    public function setConfig($option, $value)
-    {
-        $this->setConfigOption(['config', $option], $value);
-    }
-
-    /**
-     * @param string $option
-     */
-    public function unsetConfig($option)
-    {
-        $this->removeConfigOption(['config', $option]);
-    }
-
-    /**
      * @return string
      * @throws NotADirectoryException
      * @throws MissingConfigurationParameterException

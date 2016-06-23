@@ -28,4 +28,28 @@ final class Util
             return $configuration->getSshAlias().':'.$repoParts['repository'];
         return $repoParts[0];
     }
+
+    static public function createPropertyPath($key)
+    {
+        $propertyPath = [];
+        $remaining = $key;
+        // first element is evaluated differently - no leading dot for properties
+        $pattern = '/^([^[]+)((\\[.*)|$)/';
+
+        while (preg_match($pattern, $remaining, $matches)) {
+            if($matches[1] != '')
+                $propertyPath[] = $matches[1];
+            $remaining = $matches[2];
+            $pattern = '/^\\[([^]]+)\\](.*)$/';
+        }
+
+        if(strlen($remaining) > 0)
+            throw new \InvalidArgumentException(sprintf(
+                'Could not parse property path "%s". Unexpected token "%s"',
+                $key,
+                $remaining[0]
+            ));
+
+        return $propertyPath;
+    }
 }

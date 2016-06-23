@@ -7,6 +7,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
+use vierbergenlars\CliCentral\Util;
 
 class UnsetCommand extends Command
 {
@@ -21,7 +22,7 @@ class UnsetCommand extends Command
     {
         $configHelper = $this->getHelper('configuration');
         /* @var $configHelper GlobalConfigurationHelper */
-        $configHelper->getConfiguration()->unsetConfig($input->getArgument('parameter'));
+        $configHelper->getConfiguration()->removeConfigOption(Util::createPropertyPath($input->getArgument('parameter')));
         $configHelper->getConfiguration()->write();
     }
 

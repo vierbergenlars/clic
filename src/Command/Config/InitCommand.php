@@ -48,7 +48,7 @@ EOF
         /* @var $configHelper GlobalConfigurationHelper */
 
         try {
-            if (count($configHelper->getConfiguration()->getConfigOption([])))
+            if (file_exists($configHelper->getConfiguration()->getConfigFile()))
                 throw new FileExistsException($configHelper->getConfiguration()->getConfigFile());
         } catch(FileException $ex) {
             throw new \RuntimeException('The global configuration is already created.', 0, $ex);

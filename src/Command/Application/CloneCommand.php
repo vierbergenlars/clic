@@ -92,6 +92,8 @@ EOF
 
         NotEmptyException::assert($application->getPath());
 
+        $configHelper->getConfiguration()->removeApplication($application->getName()); // Clean up application again, so application:add further down does not complain.
+
         if(!$repositoryConfiguration&&!$input->getOption('no-deploy-key')) {
             $output->writeln('You do not have a deploy key configured for this repository.', OutputInterface::VERBOSITY_VERBOSE);
             $repositoryConfiguration = new RepositoryConfiguration();

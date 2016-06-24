@@ -22,6 +22,7 @@ class VariableSetCommand extends Command
             ->addArgument('value', InputArgument::REQUIRED)
             ->addOption('description', null, InputOption::VALUE_REQUIRED)
             ->addOption('default', null, InputOption::VALUE_REQUIRED, 'Default value')
+            ->addOption('default-existing-value', null, InputOption::VALUE_NONE, 'Default to the existing value')
             ->addOption('if-not-exists', null, InputOption::VALUE_NONE, 'Do not set the variable if it already is set')
             ->addOption('if-not-global-exists', null, InputOption::VALUE_NONE, 'Do not set the variable if a global value is already set')
             ->setDescription('Sets variable value for an application')
@@ -42,6 +43,8 @@ a value for the variable will be asked interactively to the user.
 When asking for a value interactively:
  * the prompt to the user can be modified with the <comment>--description</comment> option.
  * the default value for the value can be set with the <comment>--default</comment> option.
+ * the default can be set to the existing value with the <comment>--default-existing-value</comment> option, if there
+   is no existing value, the value given with <comment>--default</comment> will be used.
 
   <info>%command.full_name% prod/authserver database_name --description="Application database name" --default=authserver</info>
 
@@ -78,10 +81,26 @@ EOF
         }
     }
 
+    private function updateDefaultValue(InputInterface $input)
+    {
+        if($input->getOption('default-existing-value')) {
+            $configurationHelper = $this->getHelper('configuration');
+            /* @var $configurationHelper GlobalConfigurationHelper */
+            $application = $configurationHelper->getConfiguration()->getApplication($input->getArgument('application'));
+            try {
+                $input->setOption('default', $application->getVariable($input->getArgument('variable')));
+            } catch(MissingConfigurationParameterException $ex) {
+                // noop
+            }
+        }
+    }
+
     protected function interact(InputInterface $input, OutputInterface $output)
     {
-        if($this->checkIfNotExists($input)||$this->checkIfNotGlobalExists($input))
+        if($this->checkIfNotExists($input)||$this->checkIfNotGlobalExists($input)) {
+            $input->setArgument('value', '');
             return;
+        }
         if(!$input->getArgument('application')||!$input->getArgument('variable'))
             return;
         if(!$input->getOption('description')) {
@@ -90,6 +109,7 @@ EOF
         if(!$input->getArgument('value')) {
             $questionHelper = $this->getHelper('question');
             /* @var $questionHelper QuestionHelper */
+            $this->updateDefaultValue($input);
             $question = new Question($input->getOption('description'), $input->getOption('default'));
             $response = $questionHelper->ask($input, $output, $question);
             $input->setArgument('value', $response);

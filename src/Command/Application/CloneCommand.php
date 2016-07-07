@@ -97,7 +97,7 @@ EOF
         if(!$repositoryConfiguration&&!$input->getOption('no-deploy-key')) {
             $output->writeln('You do not have a deploy key configured for this repository.', OutputInterface::VERBOSITY_VERBOSE);
             $repositoryConfiguration = new RepositoryConfiguration();
-            $repositoryConfiguration->setSshAlias(sha1($input->getArgument('repository')).'-'.$input->getArgument('application'));
+            $repositoryConfiguration->setSshAlias(sha1($input->getArgument('repository')).'-'.basename($input->getArgument('application')));
             /*
              * Generate a new deploy key, link it to the repository and print it.
              */

@@ -6,8 +6,10 @@ use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParame
 use vierbergenlars\CliCentral\Exception\Configuration\NoSuchApplicationException;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSuchRepositoryException;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSuchVhostException;
+use vierbergenlars\CliCentral\Exception\File\FilesystemOperationFailedException;
 use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
+use vierbergenlars\CliCentral\FsUtil;
 
 class GlobalConfiguration extends Configuration
 {
@@ -83,7 +85,6 @@ class GlobalConfiguration extends Configuration
     /**
      * @return string
      * @throws NotADirectoryException
-     * @throws MissingConfigurationParameterException
      */
     public function getSshDirectory()
     {
@@ -103,6 +104,22 @@ class GlobalConfiguration extends Configuration
     public function setSshDirectory($sshDir)
     {
         $this->setConfigOption(['config', 'ssh-dir'], $sshDir);
+    }
+
+    /**
+     * @return string
+     * @throws FilesystemOperationFailedException
+     */
+    public function getOverridesDirectory()
+    {
+        try {
+            $overridesDir = $this->getConfigOption(['config', 'overrides-dir']);
+        } catch(MissingConfigurationParameterException $ex) {
+            $overridesDir = getenv('HOME')?getenv('HOME').'/.clic/overrides':null;
+        }
+        if(!is_dir($overridesDir))
+            FsUtil::mkdir($overridesDir, true);
+        return $overridesDir;
     }
 
     /**

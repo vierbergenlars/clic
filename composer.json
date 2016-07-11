@@ -13,6 +13,8 @@
     "symfony/console": "^3.1",
     "symfony/finder": "^3.1",
     "symfony/process": "^3.1",
-    "justinrainbow/json-schema": "^2.0"
+    "justinrainbow/json-schema": "^2.0",
+    "wapmorgan/unified-archive": "^0.0.3",
+    "pear/archive_tar": "^1.4"
   }
 }

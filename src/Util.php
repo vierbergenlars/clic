@@ -2,7 +2,11 @@
 
 namespace vierbergenlars\CliCentral;
 
+use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
+use vierbergenlars\CliCentral\Exception\File\FilesystemOperationFailedException;
+use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
+use wapmorgan\UnifiedArchive\UnifiedArchive;
 
 final class Util
 {
@@ -52,4 +56,42 @@ final class Util
 
         return $propertyPath;
     }
+
+    static public function extractArchive($archiveFile, $targetDirectory)
+    {
+        $archive = UnifiedArchive::open($archiveFile);
+        if(!$archive)
+            throw new UnreadableFileException($archiveFile);
+        $filenames = $archive->getFileNames();
+        $commonPrefix = Util::commonPrefix($filenames);
+        foreach($filenames as $filename) {
+            $contents = $archive->getFileContent($filename);
+            if($contents) {
+                try {
+                    FsUtil::mkdir(dirname($filename), true);
+                } catch(FilesystemOperationFailedException $ex) {
+                    // noop
+                }
+                FsUtil::file_put_contents($targetDirectory . '/' . substr($filename, strlen($commonPrefix)), $contents);
+            }
+        }
+        return true;
+    }
+
+    static public function commonPrefix(array $filenames)
+    {
+        $commonPrefix = current($filenames);
+        if(!$commonPrefix)
+            return null;
+        foreach($filenames as $filename) {
+            for($i=0; $i < min(strlen($commonPrefix), strlen($filename)); $i++) {
+                if($commonPrefix[$i] !== $filename[$i]) {
+                    $commonPrefix = substr($commonPrefix, 0, $i);
+                    break;
+                }
+            }
+        }
+        return $commonPrefix;
+    }
+
 }

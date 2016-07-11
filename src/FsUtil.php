@@ -36,4 +36,10 @@ final class FsUtil
         if(!@touch($filename))
             throw new FilesystemOperationFailedException($filename, 'touch');
     }
+
+    public static function file_put_contents($filename, $contents)
+    {
+        if(!@file_put_contents($filename, $contents))
+            throw new FilesystemOperationFailedException($filename, 'file_put_contents');
+    }
 }

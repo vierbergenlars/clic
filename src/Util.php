@@ -67,15 +67,12 @@ final class Util
         foreach($filenames as $filename) {
             $contents = $archive->getFileContent($filename);
             if($contents) {
-                try {
-                    FsUtil::mkdir(dirname($filename), true);
-                } catch(FilesystemOperationFailedException $ex) {
-                    // noop
-                }
-                FsUtil::file_put_contents($targetDirectory . '/' . substr($filename, strlen($commonPrefix)), $contents);
+                $fullFilename = $targetDirectory . '/' . substr($filename, strlen($commonPrefix));
+                if(!is_dir(dirname($fullFilename)))
+                    FsUtil::mkdir(dirname($fullFilename), true);
+                FsUtil::file_put_contents($fullFilename, $contents);
             }
         }
-        return true;
     }
 
     static public function commonPrefix(array $filenames)

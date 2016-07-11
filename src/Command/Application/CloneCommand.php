@@ -53,6 +53,7 @@ After cloning the application is completed, the <info>post-clone</info> script o
 Automatically running of this script can be prevented by using the <comment>--no-scripts</comment> option.
 
 To add an existing application, use the <info>application:add</info> command.
+To create a new application from an archive, use the <info>application:extract</info> command.
 EOF
             )
         ;

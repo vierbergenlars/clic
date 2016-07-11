@@ -109,18 +109,42 @@ class GlobalConfiguration extends Configuration
     /**
      * @return string
      * @throws FilesystemOperationFailedException
+     * @throws MissingConfigurationParameterException
+     */
+    public function getClicDirectory()
+    {
+        try {
+            $clicDirectory = $this->getConfigOption(['config', 'clic-dir']);
+        } catch(MissingConfigurationParameterException $ex) {
+            if(!getenv('HOME'))
+                throw $ex;
+            $clicDirectory = getenv('HOME').'/.clic';
+        }
+        if(!is_dir($clicDirectory))
+            FsUtil::mkdir($clicDirectory, true);
+        return $clicDirectory;
+    }
+
+    /**
+     * @return string
+     * @throws FilesystemOperationFailedException
      */
     public function getOverridesDirectory()
     {
         try {
             $overridesDir = $this->getConfigOption(['config', 'overrides-dir']);
         } catch(MissingConfigurationParameterException $ex) {
-            $overridesDir = getenv('HOME')?getenv('HOME').'/.clic/overrides':null;
+            try {
+                $overridesDir = $this->getClicDirectory() . '/overrides';
+            } catch(MissingConfigurationParameterException $ex2) {
+                throw $ex;
+            }
         }
         if(!is_dir($overridesDir))
             FsUtil::mkdir($overridesDir, true);
         return $overridesDir;
     }
+
 
     /**
      * @return RepositoryConfiguration[]

@@ -23,20 +23,27 @@ class AddCommand extends Command
         $this->setName('application:add')
             ->addArgument('application', InputArgument::REQUIRED, 'Application name')
             ->addOption('remote', null, InputOption::VALUE_REQUIRED, 'git remote for the application (will be guessed if empty)')
+            ->addOption('archive-url', null, InputOption::VALUE_REQUIRED, 'Download URL from where the application was downloaded')
             ->setDescription('Add an existing application')
             ->setHelp(<<<'EOF'
 The <info>%command.name%</info> command adds an application to the list of managed applications:
 
   <info>%command.full_name% authserver</info>
 
+The location of the application is relative to the <comment>applications-dir</comment> configuration option.
 You can also set the reference repository by using the <comment>--remote</comment> option:
 
   <info>%command.full_name% authserver --remote=https://github.com/vierbergenlars/authserver</info>
 
-The location of the application is relative to the <comment>applications-dir</comment> configuration option.
 If no reference repository is passed as option, an attempt is made to automatically detect it.
 
+Alternatively, if the application was downloaded and extracted from an archive, use the <comment>--archive-url</comment>
+option to set the location where it was downloaded from:
+
+  <info>%command.full_name% authserver --archive-url=https://github.com/vierbergenlars/authserver/archive/v0.8.0.zip</info>
+
 To create a new application from a remote repository, use the <info>application:clone</info> command.
+To create a new application from an archive, use the <info>application:extract</info> command.
 EOF
             )
         ;
@@ -49,6 +56,9 @@ EOF
         $processHelper =  $this->getHelper('process');
         /* @var $processHelper ProcessHelper */
 
+        if($input->getOption('remote')&&$input->getOption('archive-url'))
+            throw new \InvalidArgumentException('The --remote and --archive-url options are mutually exclusive.');
+
         try {
             $configHelper->getConfiguration()->getApplication($input->getArgument('application'));
             throw new ApplicationExistsException($input->getArgument('application'));
@@ -57,7 +67,7 @@ EOF
         }
         $application = Application::create($configHelper->getConfiguration(), $input->getArgument('application'));
 
-        if(!$input->getOption('remote')) {
+        if(!$input->getOption('remote')&&!$input->getOption('archive-url')) {
             try {
                 $process = $application->getProcessBuilder([
                     'bash',
@@ -87,9 +97,15 @@ EOF
             $application->setRepository($input->getOption('remote'));
         }
 
+        if($input->getOption('archive-url')) {
+            $application->setArchiveUrl($input->getOption('archive-url'));
+        }
+
         $configHelper->getConfiguration()->write();
 
-        if(!$application->getRepository()) {
+        if($application->getArchiveUrl()) {
+            $output->writeln(sprintf('Registered application <info>%s</info> (downloaded from <info>%s</info>)', $input->getArgument('application'), $application->getArchiveUrl()));
+        } elseif(!$application->getRepository()) {
             $output->writeln(sprintf('Registered application <info>%s</info> (<comment>without repository</comment>)', $input->getArgument('application')));
         } else {
             $output->writeln(sprintf('Registered application <info>%s</info> with repository <info>%s</info>', $input->getArgument('application'), $application->getRepository()));

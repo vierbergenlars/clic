@@ -59,6 +59,7 @@ class CliCentralApplication extends Application
             new Command\Application\RemoveCommand(),
             new Command\Application\ShowCommand(),
             new Command\Application\CloneCommand(),
+            new Command\Application\ExtractCommand(),
             new Command\Application\ExecCommand(),
             new Command\Application\VariableGetCommand(),
             new Command\Application\VariableSetCommand(),

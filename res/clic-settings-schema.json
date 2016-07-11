@@ -17,6 +17,10 @@
             "repository": {
               "type": "string"
             },
+            "archive-url": {
+              "type": "string",
+              "description": "Optional url where the application archive was downloaded"
+            },
             "cliconfig-override": {
               "type": "string",
               "description": "Overrides cliconfig with a file from another directory"
@@ -97,6 +101,11 @@
           "type": "string",
           "description": "Path to directory where clic stores configuration override files",
           "default": "$HOME/.clic/overrides"
+        },
+        "clic-dir": {
+          "type": "string",
+          "description": "Path to directory where clic stores its files",
+          "default": "$HOME/.clic"
         }
       }
     },

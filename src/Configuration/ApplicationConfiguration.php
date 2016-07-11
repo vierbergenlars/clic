@@ -74,6 +74,29 @@ class ApplicationConfiguration
     }
 
     /**
+     * @return string|null
+     */
+    public function getArchiveUrl()
+    {
+        try {
+            return $this->globalConfiguration->getConfigOption(['applications', $this->getName(), 'archive-url']);
+        } catch(MissingConfigurationParameterException $ex) {
+            return null;
+        }
+    }
+
+    /**
+     * @param string|null $archiveUrl
+     */
+    public function setArchiveUrl($archiveUrl)
+    {
+        if(!$archiveUrl)
+            $this->globalConfiguration->removeConfigOption(['applications', $this->getName(), 'archive-url']);
+        else
+            $this->globalConfiguration->setConfigOption(['applications', $this->getName(), 'archive-url'], $archiveUrl);
+    }
+
+    /**
      * @return \SplFileInfo
      */
     public function getConfigurationFileOverride()

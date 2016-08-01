@@ -3,7 +3,11 @@
 
 use vierbergenlars\CliCentral\CliCentralApplication;
 
-require __DIR__.'/../vendor/autoload.php';
+if(!(include __DIR__.'/../vendor/autoload.php')&&!(include __DIR__.'/../../../autoload.php')) {
+    echo 'You must set up the project dependencies using `composer install`' . PHP_EOL;
+    exit(1);
+}
+
 
 $app = new CliCentralApplication();
 $app->run();

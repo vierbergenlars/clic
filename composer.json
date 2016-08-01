@@ -1,9 +1,16 @@
 {
   "name": "vierbergenlars/clic",
+  "authors": [
+    {
+      "name": "Lars Vierbergen",
+      "email": "lars@vbgn.be"
+    }
+  ],
   "type": "project",
   "minimum-stability": "stable",
   "prefer-stable": true,
-  "license": "proprietary",
+  "license": "MIT",
+  "bin": ["bin/clic"],
   "autoload": {
     "psr-4": {
       "vierbergenlars\\CliCentral\\": "src/"

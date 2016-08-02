@@ -83,7 +83,7 @@ final class Util
         return $propertyPath;
     }
 
-    static public function extractArchive($archiveFile, $targetDirectory)
+    static public function extractArchive($archiveFile, $targetDirectory, $tmpDir)
     {
         $archive = UnifiedArchive::open($archiveFile);
         if(!$archive)
@@ -101,20 +101,44 @@ final class Util
         }
     }
 
-    static public function commonPrefix(array $filenames)
+    static public function commonPrefix(\Traversable $filenames)
     {
-        $commonPrefix = current($filenames);
-        if(!$commonPrefix)
-            return null;
+        $commonPrefix = null;
         foreach($filenames as $filename) {
-            for($i=0; $i < min(strlen($commonPrefix), strlen($filename)); $i++) {
-                if($commonPrefix[$i] !== $filename[$i]) {
-                    $commonPrefix = substr($commonPrefix, 0, $i);
-                    break;
+            if($commonPrefix === null) {
+                $commonPrefix = $filename;
+            } else {
+                for ($i = 0; $i < min(strlen($commonPrefix), strlen($filename)); $i++) {
+                    if ($commonPrefix[$i] !== $filename[$i]) {
+                        $commonPrefix = substr($commonPrefix, 0, $i);
+                        break;
+                    }
                 }
             }
         }
         return $commonPrefix;
     }
 
+    static public function getExtractProcess($file)
+    {
+        $file = realpath($file);
+        $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        if ($ext == 'zip')
+            return ProcessBuilder::create([
+                'unzip',
+                $file,
+            ])->setTimeout(null)->getProcess();
+        if ($ext == 'tar' || preg_match('~\.tar\.(gz|bz2|xz|Z)$~i', $file))
+            return ProcessBuilder::create([
+                'tar',
+                'xf',
+                $file,
+            ])->setTimeout(null)->getProcess();
+        if ($ext == 'gz')
+            return ProcessBuilder::create([
+                'gunzip',
+                $file,
+            ])->setTimeout(null)->getProcess();
+        return null;
+    }
 }

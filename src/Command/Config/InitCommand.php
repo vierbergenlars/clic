@@ -104,6 +104,14 @@ EOF
             $output
         );
 
+        $this->askDirectoryQuestion(
+            [$configHelper->getConfiguration(), 'getClicDirectory'],
+            [$configHelper->getConfiguration(), 'setClicDirectory'],
+            'Where do you want clic to place its files?',
+            $input,
+            $output
+        );
+
         $configHelper->getConfiguration()->write();
 
         $output->writeln(sprintf('<comment>Settings written to <info>%s</info></comment>', $configHelper->getConfiguration()->getConfigFile()));

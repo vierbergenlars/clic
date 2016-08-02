@@ -36,6 +36,7 @@ use Symfony\Component\Console\Helper\ProcessHelper;
 use Symfony\Component\Console\Helper\SymfonyQuestionHelper;
 use Symfony\Component\Console\Input\InputOption;
 use vierbergenlars\CliCentral\Command;
+use vierbergenlars\CliCentral\Helper\ExtractHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
 class CliCentralApplication extends Application
@@ -61,6 +62,7 @@ class CliCentralApplication extends Application
             new ProcessHelper(),
             new SymfonyQuestionHelper(),
             new GlobalConfigurationHelper(),
+            new ExtractHelper(),
         ]);
     }
 

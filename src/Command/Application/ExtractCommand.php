@@ -30,23 +30,17 @@ namespace vierbergenlars\CliCentral\Command\Application;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProcessHelper;
-use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Configuration\Application;
-use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
-use vierbergenlars\CliCentral\Exception\Configuration\NoSuchRepositoryException;
-use vierbergenlars\CliCentral\Exception\File\FileExistsException;
 use vierbergenlars\CliCentral\Exception\File\NotEmptyException;
 use vierbergenlars\CliCentral\FsUtil;
-use vierbergenlars\CliCentral\Helper\DirectoryHelper;
+use vierbergenlars\CliCentral\Helper\ExtractHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
-use vierbergenlars\CliCentral\Util;
 
 class ExtractCommand extends Command
 {
@@ -91,10 +85,8 @@ EOF
         /* @var $configHelper GlobalConfigurationHelper */
         $processHelper =  $this->getHelper('process');
         /* @var $processHelper ProcessHelper */
-        $questionHelper = $this->getHelper('question');
-        /* @var $questionHelper QuestionHelper */
-        $directoryHelper = $configHelper->getDirectoryHelper();
-        /* @var $directoryHelper DirectoryHelper */
+        $extractHelper = $this->getHelper('extract');
+        /* @var $extractHelper ExtractHelper */
 
         if(!$input->getArgument('application')) {
             $appName = basename($input->getArgument('archive'));
@@ -114,27 +106,10 @@ EOF
 
         $configHelper->getConfiguration()->removeApplication($application->getName()); // Clean up application again, so application:add further down does not complain.
 
-
         if(strpos($input->getArgument('archive'), '://') !== false) { // This is an url
-            $tempDir = $configHelper->getConfiguration()->getClicDirectory() . '/tmp';
-            if(!is_dir($tempDir))
-                FsUtil::mkdir($tempDir, true);
-            $outputFile = $tempDir.'/'.sha1($input->getArgument('archive')).'-'.basename($input->getArgument('archive'));
-            /*
-             * Wget the file
-             */
-            $prevVerbosity = $output->getVerbosity();
-            $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
-            $wget = ProcessBuilder::create([
-                'wget',
-                $input->getArgument('archive'),
-                '-O',
-                $outputFile,
-            ])->setTimeout(null)->getProcess();
-            $processHelper->mustRun($output, $wget);
-            $output->setVerbosity($prevVerbosity);
-            Util::extractArchive($outputFile, $appDir);
-            FsUtil::unlink($outputFile);
+            $outputFile = $extractHelper->downloadFile($input->getArgument('archive'), $output);
+            $extractHelper->extractArchive($outputFile, $appDir, $output);
+
             $this->getApplication()
                 ->find('application:add')
                 ->run(new ArrayInput([
@@ -142,7 +117,8 @@ EOF
                     '--archive-url' => $input->getArgument('archive'),
                 ]), $output);
         } else {
-            Util::extractArchive($input->getArgument('archive'), $application->getPath());
+            $extractHelper->extractArchive($input->getArgument('archive'), $application->getPath(), $output);
+
             $this->getApplication()
                 ->find('application:add')
                 ->run(new ArrayInput([

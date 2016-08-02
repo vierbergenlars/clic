@@ -44,7 +44,6 @@ use vierbergenlars\CliCentral\Exception\Configuration\NoSuchRepositoryException;
 use vierbergenlars\CliCentral\Exception\File\FileExistsException;
 use vierbergenlars\CliCentral\Exception\File\NotEmptyException;
 use vierbergenlars\CliCentral\FsUtil;
-use vierbergenlars\CliCentral\Helper\DirectoryHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use vierbergenlars\CliCentral\Util;
 
@@ -93,8 +92,6 @@ EOF
         /* @var $processHelper ProcessHelper */
         $questionHelper = $this->getHelper('question');
         /* @var $questionHelper QuestionHelper */
-        $directoryHelper = $configHelper->getDirectoryHelper();
-        /* @var $directoryHelper DirectoryHelper */
 
         if(!$input->getArgument('application')) {
             $input->setArgument('application', basename($input->getArgument('repository'), '.git'));
@@ -119,7 +116,6 @@ EOF
 
         NotEmptyException::assert($application->getPath());
 
-        $configHelper->getConfiguration()->removeApplication($application->getName()); // Clean up application again, so application:add further down does not complain.
 
         if(!$repositoryConfiguration&&!$input->getOption('no-deploy-key')) {
             $output->writeln('You do not have a deploy key configured for this repository.', OutputInterface::VERBOSITY_VERBOSE);
@@ -170,10 +166,12 @@ EOF
             'git',
             'clone',
             Util::replaceRepositoryUrl($repositoryParts, $repositoryConfiguration),
-            $directoryHelper->getDirectoryForApplication($input->getArgument('application')),
+            $application->getPath(),
         ])->setTimeout(null)->getProcess();
         $processHelper->mustRun($output, $gitClone);
         $output->setVerbosity($prevVerbosity);
+
+        $configHelper->getConfiguration()->removeApplication($application->getName()); // Clean up application again, so application:add further down does not complain.
 
         $this->getApplication()
             ->find('application:add')

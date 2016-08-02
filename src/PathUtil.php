@@ -64,4 +64,24 @@ final class PathUtil
         }
         return true;
     }
+
+    static public function commonPrefix(\Traversable $filenames)
+    {
+        $commonParts = null;
+        foreach($filenames as $filename) {
+            $explodedFilename = preg_split('=/|\\\\=', $filename);
+            if($commonParts === null) {
+                $commonParts = $explodedFilename;
+            } else {
+                for ($i = 0; $i < min(count($commonParts), count($explodedFilename)); $i++) {
+                    if ($commonParts[$i] !== $explodedFilename[$i]) {
+                        $commonParts = array_slice($commonParts, 0, $i);
+
+                        break;
+                    }
+                }
+            }
+        }
+        return implode(DIRECTORY_SEPARATOR, $commonParts);
+    }
 }

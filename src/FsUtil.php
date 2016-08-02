@@ -29,6 +29,7 @@
 namespace vierbergenlars\CliCentral;
 
 use vierbergenlars\CliCentral\Exception\File\FilesystemOperationFailedException;
+use vierbergenlars\CliCentral\Exception\File\RenameFailedException;
 use vierbergenlars\CliCentral\Exception\File\SymlinkFailedException;
 
 final class FsUtil
@@ -67,5 +68,11 @@ final class FsUtil
     {
         if(!@file_put_contents($filename, $contents))
             throw new FilesystemOperationFailedException($filename, 'file_put_contents');
+    }
+
+    public static function rename($source, $target)
+    {
+        if(!@rename($source, $target))
+            throw new RenameFailedException($source, $target);
     }
 }

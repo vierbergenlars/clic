@@ -97,11 +97,6 @@
           "description":" Path to .ssh directory, to store generated keys and change ssh configuration",
           "default": "$HOME/.ssh"
         },
-        "overrides-dir": {
-          "type": "string",
-          "description": "Path to directory where clic stores configuration override files",
-          "default": "$HOME/.clic/overrides"
-        },
         "clic-dir": {
           "type": "string",
           "description": "Path to directory where clic stores its files",

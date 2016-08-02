@@ -39,6 +39,7 @@ use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
 use vierbergenlars\CliCentral\FsUtil;
+use vierbergenlars\CliCentral\Helper\ExtractHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use vierbergenlars\CliCentral\Util;
 
@@ -78,6 +79,8 @@ EOF
         /* @var $configHelper GlobalConfigurationHelper */
         $processHelper = $this->getHelper('process');
         /* @var $processHelper ProcessHelper */
+        $extractHelper = $this->getHelper('extract');
+        /* @var $extractHelper ExtractHelper */
 
         $globalConfiguration = $configHelper->getConfiguration();
         $application = $globalConfiguration->getApplication($input->getArgument('application'));
@@ -118,23 +121,7 @@ EOF
                 $configFile = $configDir;
                 break;
             case 'http':
-                $overridesDirectory = $globalConfiguration->getOverridesDirectory();
-                $configDir = $overridesDirectory.'/'.sha1($configFile). '-'. basename($configFile);
-                FsUtil::mkdir($configDir);
-                /*
-                 * Wget the file
-                 */
-                $prevVerbosity = $output->getVerbosity();
-                $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
-                $gitClone = ProcessBuilder::create([
-                    'wget',
-                    $configFile,
-                    '-O',
-                    $configDir.'/'.basename($configFile),
-                ])->setTimeout(null)->getProcess();
-                $processHelper->mustRun($output, $gitClone);
-                $output->setVerbosity($prevVerbosity);
-                $configFile = $configDir.'/'.basename($configFile);
+                $configFile = $extractHelper->downloadFile($configFile, $output);
                 break;
             case 'file':
                 break;
@@ -164,16 +151,20 @@ EOF
     private function extractFile(OutputInterface $output, $configFile)
     {
         if (is_file($configFile)) {
-            try {
-                Util::extractArchive($configFile, dirname($configFile));
-                FsUtil::unlink($configFile);
-                $configFile = dirname($configFile);
-            } catch(UnreadableFileException $ex) {
-                $data = @json_decode(file_get_contents($configFile));
-                if($data !== null)
-                    return $configFile;
-                throw new \RuntimeException(sprintf('Cannot handle format of %s', $configFile), 0, $ex);
-            }
+            // Try to JSON decode the file first
+            $data = @json_decode(file_get_contents($configFile));
+            if($data !== null)
+                return $configFile;
+            // And then extract if it is not valid json
+            $configHelper = $this->getHelper('configuration');
+            /* @var $configHelper GlobalConfigurationHelper */
+            $extractHelper = $this->getHelper('extract');
+            /* @var $extractHelper ExtractHelper */
+            $overridesDir = $configHelper->getConfiguration()->getOverridesDirectory();
+            $overridesDir.='/'.sha1($configFile).'-'.basename($configFile);
+            $extractHelper->extractArchive($configFile, $overridesDir, $output);
+            FsUtil::unlink($configFile);
+            $configFile = $overridesDir;
         }
 
         if(is_dir($configFile)) {
@@ -183,23 +174,21 @@ EOF
         throw new \RuntimeException(sprintf('Could not identify the override file, please add it manually. Files are in %s', $configFile));
     }
 
-    private function findConfigJsonInDirectory($directory, $depth = 0)
+    private function findConfigJsonInDirectory($directory)
     {
-        if($depth > 20)
-            throw new \RuntimeException(sprintf('Could not determine correct override file in %s (search depth exceeded)', $directory));
         /*
          * Find override file
          */
         $jsonFiles = Finder::create()
             ->files()
             ->ignoreDotFiles(false)
-            ->depth($depth)
+            ->depth(0)
             ->name('/\.json$/i')
             ->in($directory);
 
         switch(count($jsonFiles)) {
             case 0:
-                return $this->findConfigJsonInDirectory($directory, $depth+1);
+                break;
             case 1:
                 foreach($jsonFiles as $f)
                     return (string)$f;
@@ -207,8 +196,6 @@ EOF
             default:
                 $clicFiles = $jsonFiles->name('clic');
                 switch(count($clicFiles)) {
-                    case 0:
-                        return $this->findConfigJsonInDirectory($directory, $depth+1);
                     case 1:
                         foreach($jsonFiles as $f)
                             return (string)$f;

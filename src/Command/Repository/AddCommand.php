@@ -56,12 +56,12 @@ class AddCommand extends Command
             ->setHelp(<<<'EOF'
 The <info>%command.name%</info> command registers an existing ssh key as deploy key for a repository:
 
-  <info>%command.full_name% prod/authserver ~/.ssh/id_rsa-authserver</info>
+  <info>%command.full_name% git@github.com:vierbergenlars/authserver.git ~/.ssh/id_rsa-authserver</info>
 
 By default, the ssh alias is a randomly generated hexadecimal string, but it can be
 set with the <comment>--alias</comment> option:
 
-  <info>%command.full_name% prod/authserver ~/.ssh/id_rsa-authserver --alias=authserver-git</info>
+  <info>%command.full_name% git@github.com:vierbergenlars/authserver.git ~/.ssh/id_rsa-authserver --alias=authserver-git</info>
 
 To generate an ssh key for a repository, use the <info>repository:generate-key</info> command.
 To remove an ssh key from a repository, use the <info>repository:remove</info> command.

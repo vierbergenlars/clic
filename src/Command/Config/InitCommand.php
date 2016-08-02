@@ -53,8 +53,8 @@ This command will ask interactive questions, unless <comment>--no-interaction|-n
 
   <info>%command.full_name%</info>
 
-It will help you to set up the configuration values <comment>applications-dir</comment>, <comment>vhosts-dir</comment>
-and <comment>ssh-dir</comment>.
+It will help you to set up the configuration values <comment>applications-dir</comment>, <comment>vhosts-dir</comment>,
+<comment>ssh-dir</comment> and <comment>clic-dir</comment>.
 
 Non-existing directories will automatically be created, unless the <comment>--no-create-missing</comment> option is used.
 
@@ -83,7 +83,7 @@ EOF
         $this->askDirectoryQuestion(
             [$configHelper->getConfiguration(), 'getApplicationsDirectory'],
             [$configHelper->getConfiguration(), 'setApplicationsDirectory'],
-            'Where are your application environments located?',
+            'Where do you want your applications to be placed?',
             $input,
             $output
         );
@@ -91,7 +91,7 @@ EOF
         $this->askDirectoryQuestion(
             [$configHelper->getConfiguration(), 'getVhostsDirectory'],
             [$configHelper->getConfiguration(), 'setVhostsDirectory'],
-            'Where is your webserver root located?',
+            'Where do you want the symlinks to public application folders to be placed?',
             $input,
             $output
         );

@@ -58,8 +58,8 @@ Use the <comment>--filter</comment> option to process variables before outputtin
   <info>%command.full_name% prod/authserver database_name --filter=json_encode</info>
 
 Multiple filters can be chained, and must accept the output of the previous function as first and only argument.
-The first filter in the chain must accept the type of the variable (string, integer or \stdClass for objects).
-The last filter in the chain must return a string, array, \stdClass or \Traversable of values to be printed, or null to print nothing.
+The first filter in the chain must accept a string.
+The last filter in the chain must return a string to be printed, or null to print nothing.
 
 To set variables, use the <info>application:variable:set</info> command.
 EOF

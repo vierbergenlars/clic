@@ -30,9 +30,6 @@ namespace vierbergenlars\CliCentral;
 
 use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
-use vierbergenlars\CliCentral\Exception\File\FilesystemOperationFailedException;
-use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
-use wapmorgan\UnifiedArchive\UnifiedArchive;
 
 final class Util
 {
@@ -81,24 +78,6 @@ final class Util
             ));
 
         return $propertyPath;
-    }
-
-    static public function extractArchive($archiveFile, $targetDirectory, $tmpDir)
-    {
-        $archive = UnifiedArchive::open($archiveFile);
-        if(!$archive)
-            throw new UnreadableFileException($archiveFile);
-        $filenames = $archive->getFileNames();
-        $commonPrefix = Util::commonPrefix($filenames);
-        foreach($filenames as $filename) {
-            $contents = $archive->getFileContent($filename);
-            if($contents) {
-                $fullFilename = $targetDirectory . '/' . substr($filename, strlen($commonPrefix));
-                if(!is_dir(dirname($fullFilename)))
-                    FsUtil::mkdir(dirname($fullFilename), true);
-                FsUtil::file_put_contents($fullFilename, $contents);
-            }
-        }
     }
 
     static public function commonPrefix(\Traversable $filenames)

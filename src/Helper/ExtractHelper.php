@@ -45,6 +45,9 @@ class ExtractHelper extends Helper
      */
     public function downloadFile($url, OutputInterface $output)
     {
+        if($output->getVerbosity() < OutputInterface::VERBOSITY_VERY_VERBOSE)
+            $output->write(sprintf('Downloading <comment>%s</comment>...', $url));
+
         $processHelper = $this->getHelperSet()->get('process');
         /* @var $processHelper ProcessHelper */
         $tempDir = $this->getTempDir($url);
@@ -57,6 +60,9 @@ class ExtractHelper extends Helper
         ])->setTimeout(null)->getProcess();
         $processHelper->mustRun($output, $wgetProcess);
 
+        if($output->getVerbosity() < OutputInterface::VERBOSITY_VERY_VERBOSE)
+            $output->writeln('<info>OK</info>');
+
         return $outputFile;
     }
 
@@ -67,6 +73,9 @@ class ExtractHelper extends Helper
      */
     public function extractArchive($archiveFile, $targetDir, OutputInterface $output)
     {
+        if($output->getVerbosity() < OutputInterface::VERBOSITY_VERY_VERBOSE)
+            $output->write(sprintf('Extracting <comment>%s</comment> to <comment>%s</comment>...', $archiveFile, $targetDir));
+
         $processHelper = $this->getHelperSet()->get('process');
         /* @var $processHelper ProcessHelper */
         $tempDir = $this->getTempDir($archiveFile);
@@ -90,6 +99,9 @@ class ExtractHelper extends Helper
                     ->directories()
                     ->in($tempDir) as $files)
             FsUtil::rmdir($files);
+
+        if($output->getVerbosity() < OutputInterface::VERBOSITY_VERY_VERBOSE)
+            $output->writeln('<info>OK</info>');
 
     }
 

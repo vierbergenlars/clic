@@ -30,12 +30,13 @@ namespace vierbergenlars\CliCentral\Command\Application;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProcessHelper;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\ProcessBuilder;
-use vierbergenlars\CliCentral\Configuration\Application;
+use vierbergenlars\CliCentral\Configuration\VhostConfiguration;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
 class RemoveCommand extends Command
@@ -45,6 +46,7 @@ class RemoveCommand extends Command
         $this->setName('application:remove')
             ->addArgument('application', InputArgument::REQUIRED, 'Application name')
             ->addOption('purge', null, InputOption::VALUE_NONE, 'Permanently remove the application directory')
+            ->addOption('remove-vhosts', null, InputOption::VALUE_NONE, 'Remove vhosts that point to the application')
             ->setDescription('Removes an application')
             ->setHelp(<<<'EOF'
 The <info>%command.name%</info> command removes an application to the list of managed applications:
@@ -54,6 +56,11 @@ The <info>%command.name%</info> command removes an application to the list of ma
 To also remove the application directory and its contents, use the <comment>--purge</comment> option:
 
   <info>%command.full_name% authserver --purge</info>
+
+Applications that still has vhosts attached to it cannot be removed, but vhosts can be removed together with
+the application with the <comment>--remove-vhosts</comment> option.
+
+  <info>%command.full_name% authserver --remove-vhosts</info>
 
 EOF
             )
@@ -68,6 +75,26 @@ EOF
         /* @var $processHelper ProcessHelper */
 
         $appConfig = $configHelper->getConfiguration()->getApplication($input->getArgument('application'));
+
+        $applicationVhosts = $appConfig->getVhosts();
+
+        if($input->getOption('remove-vhosts') && count($applicationVhosts) > 0) {
+            $this->getApplication()
+                ->find('vhost:remove')
+                ->run(new ArrayInput([
+                    'vhosts' => array_map(function(VhostConfiguration $vhostConfiguration) {
+                        return $vhostConfiguration->getName();
+                    }, $applicationVhosts)
+                ]), $output);
+            $applicationVhosts = $appConfig->getVhosts();
+        }
+
+        if(count($applicationVhosts) > 0) {
+            throw new \RuntimeException(sprintf('This application has active vhosts: %s', implode(', ', array_map(function(VhostConfiguration $vhostConfig) {
+                return $vhostConfig->getName();
+            }, $applicationVhosts))));
+        }
+
 
         $output->write(sprintf('Remove application <info>%s</info>...', $appConfig->getName()));
         if ($input->getOption('purge')) {

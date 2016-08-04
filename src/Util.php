@@ -30,6 +30,7 @@ namespace vierbergenlars\CliCentral;
 
 use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
+use vierbergenlars\CliCentral\Exception\Configuration\SshAliasExistsException;
 
 final class Util
 {
@@ -39,7 +40,7 @@ final class Util
         if(preg_match('/^(?:(?P<protocol>git|https?|ssh|ftps?|rsync):\\/\\/)?(?:(?P<user>[^@]+)@)?(?P<host>[a-z0-9A-Z-.]+)(?P<pathsep>:|\\/)(?P<repository>.+)$/', $repoUrl, $matches)) {
             return $matches;
         } else {
-            throw new \InvalidArgumentException(sprintf('"%s" is not a valid repository URL'));
+            throw new \InvalidArgumentException(sprintf('"%s" is not a valid repository URL', $repoUrl));
         }
     }
 
@@ -119,5 +120,54 @@ final class Util
                 $file,
             ])->setTimeout(null)->getProcess();
         return null;
+    }
+
+    static public function findSshAliasLines(array $sshConfigLines, $alias)
+    {
+        for ($i = 0; $i < count($sshConfigLines); $i++) {
+            if (rtrim($sshConfigLines[$i]) == 'Host ' . $alias) {
+                for($j = $i+1; $j < count($sshConfigLines); $j++) {
+                    if(stripos($sshConfigLines[$j], 'Host ') === 0 || stripos($sshConfigLines[$j], 'Match ') === 0)
+                        break;
+                }
+                return range($i, $j-1);
+            }
+        }
+        return [];
+    }
+
+    static public function removeSshAliasLines(array &$sshConfigLines, RepositoryConfiguration $repositoryConfiguration)
+    {
+        $aliasLines = self::findSshAliasLines($sshConfigLines, $repositoryConfiguration->getSshAlias());
+        foreach($aliasLines as $line) {
+            unset($sshConfigLines[$line]);
+        }
+        return $aliasLines !== [];
+    }
+
+    static public function addSshAliasLines(array &$sshConfigLines, $repository, RepositoryConfiguration $repositoryConfig)
+    {
+        $repoParts = Util::parseRepositoryUrl($repository);
+        $newConfigLines = [
+            'Host '.$repositoryConfig->getSshAlias(),
+            'HostName '.$repoParts['host'],
+            'User '.$repoParts['user'],
+            'IdentityFile '.$repositoryConfig->getIdentityFile(),
+        ];
+        $foundAliasLines = self::findSshAliasLines($sshConfigLines, $repositoryConfig->getSshAlias());
+        if(!$foundAliasLines) {
+            $sshConfigLines = array_merge($sshConfigLines, $newConfigLines);
+            return true;
+        } else {
+            $presentAliasLines = array_map(function($i) use($sshConfigLines) {
+                return $sshConfigLines[$i];
+            }, $foundAliasLines);
+            foreach($newConfigLines as $newConfigLine) {
+                if(!in_array($newConfigLine, $presentAliasLines)) {
+                    throw new SshAliasExistsException($repositoryConfig->getSshAlias(), $foundAliasLines[0]);
+                }
+            }
+            return false;
+        }
     }
 }

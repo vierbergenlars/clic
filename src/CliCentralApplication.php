@@ -77,6 +77,7 @@ class CliCentralApplication extends Application
             new Command\Repository\AddCommand(),
             new Command\Repository\GenerateCommand(),
             new Command\Repository\ShowCommand(),
+            new Command\Repository\ListCommand(),
             new Command\Vhost\AddCommand(),
             new Command\Vhost\RemoveCommand(),
             new Command\Vhost\ShowCommand(),
@@ -86,12 +87,13 @@ class CliCentralApplication extends Application
             new Command\Application\AddCommand(),
             new Command\Application\RemoveCommand(),
             new Command\Application\ShowCommand(),
+            new Command\Application\ListCommand(),
             new Command\Application\CloneCommand(),
             new Command\Application\ExtractCommand(),
             new Command\Application\ExecCommand(),
             new Command\Application\VariableGetCommand(),
             new Command\Application\VariableSetCommand(),
-            new Command\Application\OverrideConfigCommand(),
+            new Command\Application\OverrideCommand(),
         ]);
     }
 

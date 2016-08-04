@@ -134,11 +134,8 @@ EOF
             return $this->getApplication()
                 ->find('application:execute')
                 ->run(new ArrayInput([
-                    '--skip-missing' => true,
                     'script' => 'post-extract',
-                    'applications' => [
-                        $input->getArgument('application'),
-                    ],
+                    'application' => $input->getArgument('application'),
                 ]), $output);
         }
         return 0;

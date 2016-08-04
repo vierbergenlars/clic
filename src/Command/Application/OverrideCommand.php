@@ -35,7 +35,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\ProcessBuilder;
+use vierbergenlars\CliCentral\Configuration\GlobalConfiguration;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
 use vierbergenlars\CliCentral\FsUtil;
@@ -43,14 +45,14 @@ use vierbergenlars\CliCentral\Helper\ExtractHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use vierbergenlars\CliCentral\Util;
 
-class OverrideConfigCommand extends Command
+class OverrideCommand extends Command
 {
     protected function configure()
     {
-        $this->setName('application:override:config')
+        $this->setName('application:override')
             ->addArgument('application', InputArgument::REQUIRED, 'The application to add an override to')
             ->addArgument('config-file', InputArgument::REQUIRED, 'The configuration file to use for the application')
-            ->addOption('type', null, InputOption::VALUE_REQUIRED, 'The type of the config-file argument (file,http,git)', 'file')
+            ->addOption('type', null, InputOption::VALUE_REQUIRED, 'The type of the config-file argument (file,http,git)')
             ->setDescription('Changes the configuration file for an application')
             ->setHelp(<<<'EOF'
 The <info>%command.name%</info> command changes the configuration file for the application,
@@ -60,8 +62,11 @@ effectively overriding all settings in the packaged <comment>.cliconfig.json</co
 
 Automatically downloading the override files from an url is also possible with git, or by downloading an archive over http(s):
 
-  <info>%command.full_name% authserver --type git https://gist.github.com/vierbergenlars/9fcbad1a0f8025b98d7e875f614fdaae</info>
-  <info>%command.full_name% authserver --type http https://gist.github.com/vierbergenlars/9fcbad1a0f8025b98d7e875f614fdaae/archive/f371b4ad7130e1d528e99e2f888bb7e6d36b129e.zip
+  <info>%command.full_name% owncloud https://gist.github.com/vierbergenlars/9fcbad1a0f8025b98d7e875f614fdaae</info>
+  <info>%command.full_name% owncloud https://gist.github.com/vierbergenlars/9fcbad1a0f8025b98d7e875f614fdaae/archive/f371b4ad7130e1d528e99e2f888bb7e6d36b129e.zip
+
+An attempt is made to automatically detect the type of configuration file.
+Use the <comment>--type</comment> option to explicitly set the type.
 
 Accepted archive formats are: zip, rar, tar, tar.gz, tar.bz2, tar.xz, tar.Z.
 
@@ -77,61 +82,55 @@ EOF
     {
         $configHelper = $this->getHelper('configuration');
         /* @var $configHelper GlobalConfigurationHelper */
-        $processHelper = $this->getHelper('process');
-        /* @var $processHelper ProcessHelper */
         $extractHelper = $this->getHelper('extract');
         /* @var $extractHelper ExtractHelper */
 
         $globalConfiguration = $configHelper->getConfiguration();
         $application = $globalConfiguration->getApplication($input->getArgument('application'));
         $configFile = $input->getArgument('config-file');
-        switch($input->getOption('type')) {
-            case 'git':
-                $overridesDirectory = $globalConfiguration->getOverridesDirectory();
-                $configDir = $overridesDirectory.'/'.sha1($configFile). '-'. basename($configFile, '.git');
-                if(!is_dir($configDir)) {
-                    FsUtil::mkdir($configDir);
-
-                    /*
-                     * Run a git clone for the application
-                     */
-                    $prevVerbosity = $output->getVerbosity();
-                    $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
-                    $gitClone = ProcessBuilder::create([
-                        'git',
-                        'clone',
-                        $configFile,
-                        $configDir
-                    ])->setTimeout(null)->getProcess();
-                    $processHelper->mustRun($output, $gitClone);
-                    $output->setVerbosity($prevVerbosity);
-                } else {
-                    /*
-                     * Run a git pull for the application
-                     */
-                    $prevVerbosity = $output->getVerbosity();
-                    $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
-                    $gitPull = ProcessBuilder::create([
-                        'git',
-                        'pull',
-                    ])->setTimeout(null)->setWorkingDirectory($configDir)->getProcess();
-                    $processHelper->mustRun($output, $gitPull);
-                    $output->setVerbosity($prevVerbosity);
-                }
-                $configFile = $configDir;
-                break;
-            case 'http':
-                $configFile = $extractHelper->downloadFile($configFile, $output);
-                break;
-            case 'file':
-                break;
-            default:
-                throw new \InvalidArgumentException('--type must be one of git, http, file');
-        }
-
-        $configFile = $this->extractFile($output, $configFile);
 
         if($configFile) {
+            if(!$input->getOption('type')) {
+                // Attempt to detect the type of config-file if none is given
+                if (is_file($input->getArgument('config-file'))) {
+                    $input->setOption('type', 'file');
+                } else {
+                    try {
+                        $repoParts = Util::parseRepositoryUrl($input->getArgument('config-file'));
+                        if (in_array($repoParts['protocol'], ['git', 'ssh', 'rsync']))
+                            $input->setOption('type', 'git');
+                    } catch (\InvalidArgumentException $ex) {
+                        $input->setOption('type', 'http');
+                    }
+                }
+            }
+            switch($input->getOption('type')?:'git') {
+                case 'git':
+                    try {
+                        $configFile = $this->downloadGit($output, $configFile);
+                    } catch(ProcessFailedException $ex) {
+                        if($input->getOption('type'))
+                            throw $ex;
+                        $errorOutput = $ex->getProcess()->getErrorOutput();
+                        if (preg_match('/fatal: repository .*not found/i', $errorOutput)) {
+                            // "No such repository" when trying to clone a normal http url. Try downloading the file
+                            $configFile = $extractHelper->downloadFile($configFile, $output);
+                        } else {
+                            throw $ex;
+                        }
+                    }
+                    break;
+                case 'http':
+                    $configFile = $extractHelper->downloadFile($configFile, $output);
+                    break;
+                case 'file':
+                    break;
+                default:
+                    throw new \InvalidArgumentException('--type must be one of git, http, file');
+            }
+
+            $configFile = $this->extractFile($output, $configFile);
+
             $configFile = new \SplFileInfo($configFile);
             if(!$configFile->isFile())
                 throw new NotAFileException($configFile);
@@ -202,5 +201,53 @@ EOF
                 }
         }
         throw new \RuntimeException(sprintf('Could not determine correct override file in %s', $directory));
+    }
+
+    /**
+     * @param OutputInterface $output
+     * @param $configFile
+     * @return string
+     */
+    protected function downloadGit(OutputInterface $output, $configFile)
+    {
+        $configHelper = $this->getHelper('configuration');
+        /* @var $configHelper GlobalConfigurationHelper */
+        $processHelper = $this->getHelper('process');
+        /* @var $processHelper ProcessHelper */
+
+        $globalConfiguration = $configHelper->getConfiguration();
+        $overridesDirectory = $globalConfiguration->getOverridesDirectory();
+        $configDir = $overridesDirectory . '/' . sha1($configFile) . '-' . basename($configFile, '.git');
+        if (!is_dir($configDir)) {
+            FsUtil::mkdir($configDir);
+
+            /*
+             * Run a git clone for the application
+             */
+            $prevVerbosity = $output->getVerbosity();
+            $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
+            $gitClone = ProcessBuilder::create([
+                'git',
+                'clone',
+                $configFile,
+                $configDir
+            ])->setTimeout(null)->getProcess();
+            $processHelper->mustRun($output, $gitClone);
+            $output->setVerbosity($prevVerbosity);
+        } else {
+            /*
+             * Run a git pull for the application
+             */
+            $prevVerbosity = $output->getVerbosity();
+            $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
+            $gitPull = ProcessBuilder::create([
+                'git',
+                'pull',
+            ])->setTimeout(null)->setWorkingDirectory($configDir)->getProcess();
+            $processHelper->mustRun($output, $gitPull);
+            $output->setVerbosity($prevVerbosity);
+        }
+        $configFile = $configDir;
+        return $configFile;
     }
 }

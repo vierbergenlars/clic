@@ -37,6 +37,7 @@ use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSshRepositoryException;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSuchRepositoryException;
 use vierbergenlars\CliCentral\Exception\Configuration\RepositoryExistsException;
+use vierbergenlars\CliCentral\Exception\Configuration\SshAliasExistsException;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
 use vierbergenlars\CliCentral\Exception\File\UnwritableFileException;
@@ -102,19 +103,18 @@ EOF
         if (!$sshConfigFile->isWritable())
             throw new UnwritableFileException($sshConfigFile);
 
-        $repoParts = Util::parseRepositoryUrl($input->getArgument('repository'));
-        $sshConfigFp = fopen($sshConfigFile, 'a');
-        $lines = PHP_EOL.'Host '.$repositoryConfig->getSshAlias().PHP_EOL
-            .'HostName '.$repoParts['host'].PHP_EOL
-            .'User '.$repoParts['user'].PHP_EOL
-            .'IdentityFile '.$repositoryConfig->getIdentityFile().PHP_EOL;
+        $sshConfigLines = file($sshConfigFile);
+        try {
+            if (Util::addSshAliasLines($sshConfigLines, $input->getArgument('repository'), $repositoryConfig)) {
+                FsUtil::file_put_contents($sshConfigFile, implode(PHP_EOL, $sshConfigLines));
+                $output->writeln(sprintf('Added section <info>%s</info> to <info>%s</info>', 'Host ' . $repositoryConfig->getSshAlias(), $sshConfigFile->getPathname()), OutputInterface::VERBOSITY_VERBOSE);
+            } else {
+                $output->writeln(sprintf('Added section <info>%s</info> already exists in <info>%s</info>', 'Host ' . $repositoryConfig->getSshAlias(), $sshConfigFile->getPathname()), OutputInterface::VERBOSITY_VERBOSE);
+            }
+        } catch(SshAliasExistsException $ex) {
+            throw new SshAliasExistsException($ex->getAliasName(), $ex->getLineNumber(), $sshConfigFile);
+        }
 
-        if(fwrite($sshConfigFp, $lines) !== strlen($lines))
-            throw new \RuntimeException(sprintf('Could not fully write ssh configuration to "%s"', $sshConfigFile));
-        if(!fclose($sshConfigFp))
-            throw new \RuntimeException(sprintf('Could not fully write ssh configuration to "%s"', $sshConfigFile));
-
-        $output->writeln(sprintf('Added section <info>%s</info> to <info>%s</info>', 'Host '.$repositoryConfig->getSshAlias(), $sshConfigFile->getPathname()), OutputInterface::VERBOSITY_VERBOSE);
 
         $configHelper->getConfiguration()->setRepositoryConfiguration($input->getArgument('repository'), $repositoryConfig);
         $configHelper->getConfiguration()->write();

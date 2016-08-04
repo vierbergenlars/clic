@@ -29,9 +29,10 @@
 namespace vierbergenlars\CliCentral\Command\Application;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use vierbergenlars\CliCentral\Configuration\Application;
 use vierbergenlars\CliCentral\Configuration\ApplicationConfiguration;
 use vierbergenlars\CliCentral\Configuration\VhostConfiguration;
 use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
@@ -39,17 +40,16 @@ use vierbergenlars\CliCentral\Exception\Configuration\NoSuchRepositoryException;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use vierbergenlars\CliCentral\Util;
 
-class ShowCommand extends Command
+class ListCommand extends Command
 {
     protected function configure()
     {
-        $this->setName('application:show')
-            ->addArgument('application', InputArgument::REQUIRED, 'The application to show information for')
-            ->setDescription('Shows application information')
+        $this->setName('application:list')
+            ->setDescription('Lists all applications')
             ->setHelp(<<<'EOF'
-The <info>%command.name%</info> command shows details about one application
+The <info>%command.name%</info> command lists all applications, with additional information.
 
-  <info>%command.full_name% authserver</info>
+  <info>%command.full_name%</info>
 EOF
             )
         ;
@@ -59,19 +59,37 @@ EOF
     {
         $configHelper = $this->getHelper('configuration');
         /* @var $configHelper GlobalConfigurationHelper */
-        $applicationConfig = $configHelper->getConfiguration()->getApplication($input->getArgument('application'));
-        $output->writeln(sprintf('Path: <comment>%s</comment>', $applicationConfig->getPath()));
-        $output->writeln(sprintf('Repository: <info>%s</info>', $this->getRepositoryName($applicationConfig)));
-        try {
-            $output->writeln(sprintf('Configuration file override: <comment>%s</comment>', $applicationConfig->getConfigurationFileOverride()));
-        } catch(MissingConfigurationParameterException $ex) {
-            // noop
+        $applicationConfigs = $configHelper->getConfiguration()->getApplications();
+        $table = new Table($output);
+        $table->setHeaders(['Application', 'Repository', 'Vhosts', 'Status']);
+
+        foreach($applicationConfigs as $applicationConfig) {
+            /* @var $applicationConfig Application */
+            $appName = $applicationConfig->getName();
+
+            $vhostMessage = [];
+            $vhosts = $this->getLinkedVhosts($appName);
+            foreach($vhosts as $vhostConfig) {
+                /* @var $vhostConfig VhostConfiguration */
+                $vhostName = $vhostConfig->getName();
+                if($vhostConfig->getErrorStatus())
+                    $style = 'error';
+                elseif($vhostConfig->isDisabled())
+                    $style = 'comment';
+                else
+                    $style = 'info';
+                $vhostMessage[] = sprintf('<%s>%s</%1$s>', $style, $vhostName);
+            }
+
+            $table->addRow([
+                $appName,
+                $this->getRepositoryName($applicationConfig),
+                implode(PHP_EOL, $vhostMessage),
+                $this->getStatusMessage($applicationConfig)
+            ]);
         }
-        foreach($this->getLinkedVhosts($applicationConfig->getName()) as $vhostConfig) {
-            /* @var $vhostConfig VhostConfiguration */
-            $output->writeln(sprintf('Vhost: <info>%s</info> (%s)', $vhostConfig->getName(), $vhostConfig->getStatusMessage()));
-        }
-        $output->writeln(sprintf('Status: %s', $this->getStatusMessage($applicationConfig)));
+
+        $table->render();
     }
 
     /**

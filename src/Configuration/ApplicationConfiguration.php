@@ -166,4 +166,14 @@ class ApplicationConfiguration
         array_unshift($path, 'applications', $this->getName(), 'overrides');
         $this->globalConfiguration->setConfigOption($path, $value);
     }
+
+    /**
+     * @var VhostConfiguration[]
+     */
+    public function getVhosts()
+    {
+        return array_filter($this->globalConfiguration->getVhostConfigurations(), function(VhostConfiguration $vhostConfiguration) {
+            return $vhostConfiguration->getApplication() === $this->getName();
+        });
+    }
 }

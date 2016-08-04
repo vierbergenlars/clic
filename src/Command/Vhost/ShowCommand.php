@@ -44,13 +44,20 @@ class ShowCommand extends AbstractMultiVhostsCommand
             ->setHelp(<<<'EOF'
 The <info>%command.name%</info> command shows information about one or more vhosts:
 
-  <info>%command.full_name% -A</info>
+  <info>%command.full_name%</info>
 
 If more than one vhost is passed on the commandline, a table with basic information is shown.
 All details for an vhost are shown if exactly one vhost name is used as argument.
 EOF
             )
         ;
+    }
+
+    protected function initialize(InputInterface $input, OutputInterface $output)
+    {
+        if($input->getArgument('vhosts') === [])
+            $input->setOption('all', true);
+        parent::initialize($input, $output);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

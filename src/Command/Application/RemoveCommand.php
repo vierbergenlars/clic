@@ -28,7 +28,9 @@
 
 namespace vierbergenlars\CliCentral\Command\Application;
 
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProcessHelper;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -36,12 +38,12 @@ use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Configuration\Application;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
-class RemoveCommand extends AbstractMultiApplicationsCommand
+class RemoveCommand extends Command
 {
     protected function configure()
     {
-        parent::configure();
         $this->setName('application:remove')
+            ->addArgument('application', InputArgument::REQUIRED, 'Application name')
             ->addOption('purge', null, InputOption::VALUE_NONE, 'Permanently remove the application directory')
             ->setDescription('Removes an application')
             ->setHelp(<<<'EOF'
@@ -65,16 +67,15 @@ EOF
         $processHelper = $this->getHelper('process');
         /* @var $processHelper ProcessHelper */
 
-        foreach ($input->getArgument('applications') as $appConfig) {
-            /* @var $appConfig Application */
-            $output->write(sprintf('Remove application <info>%s</info>...', $appConfig->getName()));
-            if ($input->getOption('purge')) {
-                $output->writeln(sprintf('Purging <comment>%s</comment>', $appConfig->getPath()));
-                $processHelper->mustRun($output, ProcessBuilder::create(['rm', '-rf', $appConfig->getPath()])->getProcess());
-            }
-            $configHelper->getConfiguration()->removeApplication($appConfig->getName());
-            $output->writeln('<info>OK</info>');
+        $appConfig = $configHelper->getConfiguration()->getApplication($input->getArgument('application'));
+
+        $output->write(sprintf('Remove application <info>%s</info>...', $appConfig->getName()));
+        if ($input->getOption('purge')) {
+            $output->writeln(sprintf('Purging <comment>%s</comment>', $appConfig->getPath()));
+            $processHelper->mustRun($output, ProcessBuilder::create(['rm', '-rf', $appConfig->getPath()])->getProcess());
         }
+        $configHelper->getConfiguration()->removeApplication($appConfig->getName());
+        $output->writeln('<info>OK</info>');
 
         $configHelper->getConfiguration()->write();
     }

@@ -28,6 +28,9 @@
 
 namespace vierbergenlars\CliCentral\Configuration;
 
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\ProcessBuilder;
+
 class RepositoryConfiguration
 {
     private $config;
@@ -77,5 +80,52 @@ class RepositoryConfiguration
     public function setSshAlias($sshAlias)
     {
         $this->config->{'ssh-alias'} = $sshAlias;
+    }
+
+    public function getSshFingerprint()
+    {
+        return trim(ProcessBuilder::create([
+            'ssh-keygen',
+            '-l',
+            '-E',
+            'md5',
+            '-f',
+            $this->getIdentityFile(),
+        ])->getProcess()->mustRun()->getOutput());
+    }
+
+    public function getSshFingerprintMessage()
+    {
+        try {
+            $fingerprintParts = preg_split('/[ ]+/', $this->getSshFingerprint());
+            $bits = array_shift($fingerprintParts);
+            $fingerprint = array_shift($fingerprintParts);
+            $type = array_pop($fingerprintParts);
+            $comment = implode(' ', $fingerprintParts);
+            return sprintf('%s <info>%s</info> %s'.PHP_EOL.'<comment>%s</comment>', $bits, $fingerprint, $type, $comment);
+        } catch(ProcessFailedException $ex) {
+            $errorMessage = $this->getErrorMessage();
+            if($errorMessage)
+                return $errorMessage;
+            $errorOutput = $ex->getProcess()->getErrorOutput();
+            return '<error>'.str_replace(PHP_EOL, '</error>'.PHP_EOL.'<error>', $errorOutput).'</error>';
+        }
+    }
+
+    public function getErrorMessage()
+    {
+        if(!is_file($this->getIdentityFile()))
+            return '<error>Missing private key file</error>';
+        return null;
+    }
+
+    public function getStatusMessage()
+    {
+        $errorMessage = $this->getErrorMessage();
+        if($errorMessage)
+            return $errorMessage;
+        if(!is_file($this->getIdentityFile().'.pub'))
+            return '<comment>Missing public key file</comment>';
+        return '<info>OK</info>';
     }
 }

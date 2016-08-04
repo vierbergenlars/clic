@@ -75,4 +75,12 @@ final class FsUtil
         if(!@rename($source, $target))
             throw new RenameFailedException($source, $target);
     }
+
+    public static function file_get_contents($filename)
+    {
+        $contents = @file_get_contents($filename);
+        if($contents === false)
+            throw new FilesystemOperationFailedException($filename, 'file_get_contents');
+        return $contents;
+    }
 }

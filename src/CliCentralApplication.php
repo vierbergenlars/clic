@@ -81,6 +81,7 @@ class CliCentralApplication extends Application
             new Command\Vhost\AddCommand(),
             new Command\Vhost\RemoveCommand(),
             new Command\Vhost\ShowCommand(),
+            new Command\Vhost\ListCommand(),
             new Command\Vhost\FixCommand(),
             new Command\Vhost\DisableCommand(),
             new Command\Vhost\EnableCommand(),

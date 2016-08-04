@@ -37,18 +37,20 @@ use vierbergenlars\CliCentral\Configuration\VhostConfiguration;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
 
-class ShowCommand extends Command
+class ListCommand extends Command
 {
     protected function configure()
     {
         parent::configure();
-        $this->setName('vhost:show')
-            ->addArgument('vhost', InputArgument::REQUIRED, 'The vhost to shown information for')
-            ->setDescription('Shows vhost information')
+        $this->setName('vhost:list')
+            ->setAliases([
+                'vhost:ls',
+            ])
+            ->setDescription('Lists all vhosts')
             ->setHelp(<<<'EOF'
-The <info>%command.name%</info> command shows information about a vhost:
+The <info>%command.name%</info> command shows a list of all vhosts:
 
-  <info>%command.full_name% autherver</info>
+  <info>%command.full_name%</info>
 EOF
             )
         ;
@@ -58,20 +60,21 @@ EOF
     {
         $configHelper = $this->getHelper('configuration');
         /* @var $configHelper GlobalConfigurationHelper */
-        $vhostConfig = $configHelper->getConfiguration()->getVhostConfiguration($input->getArgument('vhost'));
-        /* @var $vhostConfig VhostConfiguration */
-        $output->writeln(sprintf('Application: <info>%s</info>', $vhostConfig->getApplication()));
-        $vhostLink = $vhostConfig->getLink();
-        $vhostTarget = $vhostConfig->getTarget();
-        $messages = [sprintf('Link: %s', $vhostConfig->getLink())];
-        if(!$vhostLink->isLink())
-            $messages[] = '<error>(Not a link)</error>';
-        $output->writeln(implode(' ', $messages));
-        if($vhostLink->isLink()&&$vhostLink->getLinkTarget() !== $vhostTarget->getPathname()) {
-                $output->writeln(sprintf('Target: <error>%s</error> (Should be <info>%s</info>)', $vhostLink->getLinkTarget(), $vhostTarget->getPathname()));
-        } else {
-            $output->writeln(sprintf('Target: %s', $vhostConfig->getOriginalTarget()));
+        $vhostConfigs = $configHelper->getConfiguration()->getVhostConfigurations();
+
+        $table = new Table($output);
+
+        $table->setHeaders(['Vhost', 'Application', 'Status']);
+
+        foreach($vhostConfigs as $vhostConfig) {
+            /* @var $vhostConfig VhostConfiguration */
+            $table->addRow([
+                $vhostConfig->getName(),
+                $vhostConfig->getApplication(),
+                $vhostConfig->getStatusMessage(),
+            ]);
         }
-        $output->writeln(sprintf('Status: %s', $vhostConfig->getStatusMessage()));
+
+        $table->render();
     }
 }

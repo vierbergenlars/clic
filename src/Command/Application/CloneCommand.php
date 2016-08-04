@@ -56,6 +56,8 @@ class CloneCommand extends Command
             ->addArgument('application', InputArgument::OPTIONAL, 'The name of the application to clone to. (Defaults to repository name)')
             ->addOption('no-deploy-key', null, InputOption::VALUE_NONE, 'Do not generate or use a deploy key')
             ->addOption('no-scripts', null, InputOption::VALUE_NONE, 'Do not run post-clone script')
+            ->addOption('override', 'o', InputOption::VALUE_REQUIRED, 'Override for the application\'s configuration')
+            ->addOption('override-type', null, InputOption::VALUE_REQUIRED, 'Type of the override for the application')
             ->setDescription('Create a new application from remote repository')
             ->setHelp(<<<'EOF'
 The <info>%command.name%</info> command creates a new application from a remote repository.
@@ -76,6 +78,9 @@ It should be uploaded as a read-only deploy key in the interface of the reposito
 After cloning the application is completed, the <info>post-clone</info> script of the repository is executed.
 (For more informations on scripts, see the <info>application:execute</info> command)
 Automatically running of this script can be prevented by using the <comment>--no-scripts</comment> option.
+
+The <comment>--override|-o</comment> and <comment>--override-type</comment> options allow to immediately add a
+configuration override for the application. (See <info>application:override</info>)
 
 To add an existing application, use the <info>application:add</info> command.
 To create a new application from an archive, use the <info>application:extract</info> command.
@@ -179,6 +184,19 @@ EOF
                 'application' => $input->getArgument('application'),
                 '--remote' => $input->getArgument('repository'),
             ]), $output);
+
+        if($input->getOption('override')) {
+            $input1 = new ArrayInput([
+                'application' => $input->getArgument('application'),
+                'config-file' => $input->getOption('override'),
+            ]);
+            if($input->getOption('override-type')) {
+                $input1->setOption('type', $input->getOption('override-type'));
+            }
+            $this->getApplication()
+                ->find('application:override')
+                ->run($input1, $output);
+        }
 
         if(!$input->getOption('no-scripts')) {
             /*

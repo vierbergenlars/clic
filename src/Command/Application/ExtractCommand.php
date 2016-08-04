@@ -49,6 +49,8 @@ class ExtractCommand extends Command
         $this->setName('application:extract')
             ->addArgument('archive', InputArgument::REQUIRED, 'The archive to extract the application from')
             ->addArgument('application', InputArgument::OPTIONAL, 'The name of the application to extract to. (Defaults to archive name)')
+            ->addOption('override', 'o', InputOption::VALUE_REQUIRED, 'Override for the application\'s configuration')
+            ->addOption('override-type', null, InputOption::VALUE_REQUIRED, 'Type of the override for the application')
             ->addOption('no-scripts', null, InputOption::VALUE_NONE, 'Do not run post-clone script')
             ->setDescription('Create a new application from an archive')
             ->setHelp(<<<'EOF'
@@ -72,6 +74,9 @@ Automatically running of this script can be prevented by using the <comment>--no
 
 Accepted archive formats are: zip, rar, tar, tar.gz, tar.bz2, tar.xz, tar.Z.
 
+The <comment>--override|-o</comment> and <comment>--override-type</comment> options allow to immediately add a
+configuration override for the application. (See <info>application:override</info>)
+
 To add an existing application, use the <info>application:add</info> command.
 To clone an application with git, use the <info>application:clone</info> command.
 EOF
@@ -83,8 +88,6 @@ EOF
     {
         $configHelper = $this->getHelper('configuration');
         /* @var $configHelper GlobalConfigurationHelper */
-        $processHelper =  $this->getHelper('process');
-        /* @var $processHelper ProcessHelper */
         $extractHelper = $this->getHelper('extract');
         /* @var $extractHelper ExtractHelper */
 
@@ -124,6 +127,19 @@ EOF
                 ->run(new ArrayInput([
                     'application' => $input->getArgument('application'),
                 ]), $output);
+        }
+
+        if($input->getOption('override')) {
+            $input1 = new ArrayInput([
+                'application' => $input->getArgument('application'),
+                'config-file' => $input->getOption('override'),
+            ]);
+            if($input->getOption('override-type')) {
+                $input1->setOption('type', $input->getOption('override-type'));
+            }
+            $this->getApplication()
+                ->find('application:override')
+                ->run($input1, $output);
         }
 
 

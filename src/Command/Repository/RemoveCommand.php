@@ -34,7 +34,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
-use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
 use vierbergenlars\CliCentral\Exception\File\FilesystemOperationFailedException;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
@@ -48,6 +47,9 @@ class RemoveCommand extends Command
     protected function configure()
     {
         $this->setName('repository:remove')
+            ->setAliases([
+                'repository:rm',
+            ])
             ->addArgument('repository', InputArgument::REQUIRED, 'The repository to remove')
             ->setDescription('Remove deploy key from a repository')
             ->setHelp(<<<'EOF'

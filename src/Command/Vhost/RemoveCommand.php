@@ -44,6 +44,9 @@ class RemoveCommand extends AbstractMultiVhostsCommand
     {
         parent::configure();
         $this->setName('vhost:remove')
+            ->setAliases([
+                'vhost:rm',
+            ])
             ->addOption('force', null, InputOption::VALUE_NONE, 'Force remove vhost, even if link target does not match expected target.')
             ->setDescription('Remove web-accessible entrypoint to an application')
             ->setHelp(<<<'EOF'

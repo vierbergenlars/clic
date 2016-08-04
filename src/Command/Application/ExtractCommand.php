@@ -47,6 +47,10 @@ class ExtractCommand extends Command
     protected function configure()
     {
         $this->setName('application:extract')
+            ->setAliases([
+                'application:unzip',
+                'application:unpack',
+            ])
             ->addArgument('archive', InputArgument::REQUIRED, 'The archive to extract the application from')
             ->addArgument('application', InputArgument::OPTIONAL, 'The name of the application to extract to. (Defaults to archive name)')
             ->addOption('override', 'o', InputOption::VALUE_REQUIRED, 'Override for the application\'s configuration')

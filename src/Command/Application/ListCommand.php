@@ -45,6 +45,9 @@ class ListCommand extends Command
     protected function configure()
     {
         $this->setName('application:list')
+            ->setAliases([
+                'application:ls',
+            ])
             ->setDescription('Lists all applications')
             ->setHelp(<<<'EOF'
 The <info>%command.name%</info> command lists all applications, with additional information.

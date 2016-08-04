@@ -44,6 +44,9 @@ class RemoveCommand extends Command
     protected function configure()
     {
         $this->setName('application:remove')
+            ->setAliases([
+                'application:rm',
+            ])
             ->addArgument('application', InputArgument::REQUIRED, 'Application name')
             ->addOption('purge', null, InputOption::VALUE_NONE, 'Permanently remove the application directory')
             ->addOption('remove-vhosts', null, InputOption::VALUE_NONE, 'Remove vhosts that point to the application')

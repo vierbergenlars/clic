@@ -42,6 +42,9 @@ class ListCommand extends Command
     protected function configure()
     {
         $this->setName('repository:list')
+            ->setAliases([
+                'repository:ls',
+            ])
             ->setDescription('Lists all repositories')
             ->setHelp(<<<'EOF'
 The <info>%command.name%</info> command shows a list of all repositories

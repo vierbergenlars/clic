@@ -35,15 +35,67 @@ use Symfony\Component\Console\Helper\HelperSet;
 use Symfony\Component\Console\Helper\ProcessHelper;
 use Symfony\Component\Console\Helper\SymfonyQuestionHelper;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Command;
+use vierbergenlars\CliCentral\Exception\File\FilesystemOperationFailedException;
 use vierbergenlars\CliCentral\Helper\ExtractHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 
 class CliCentralApplication extends Application
 {
+    const PACKAGE_NAME = 'vierbergenlars/clic';
+
     public function __construct()
     {
-        parent::__construct('clic');
+        parent::__construct('clic', $this->getBuildVersion());
+    }
+
+    private function getBuildVersion()
+    {
+        $version = '@git-version@';
+        if($version !== ('@'.'git-version'.'@'))
+            return $version;
+        try {
+            // try to locate composers' installed.json file. (in case of global install)
+            $packages = json_decode(FsUtil::file_get_contents(__DIR__.'/../../../composer/installed.json'), true);
+            foreach($packages as $package) {
+                if($package['name'] === self::PACKAGE_NAME)
+                    return $package['version'];
+            }
+        } catch(FilesystemOperationFailedException $ex) {
+            // no op
+        }
+
+        return 'UNKNOWN';
+    }
+
+    private function getBuildCommit()
+    {
+        $commit = '@git-commit@';
+        if($commit !== ('@'.'git-commit'.'@'))
+            return $commit;
+
+        try {
+            // try to locate composers' installed.json file. (in case of global install)
+            $packages = json_decode(FsUtil::file_get_contents(__DIR__.'/../../../composer/installed.json'), true);
+            foreach($packages as $package) {
+                if($package['name'] === self::PACKAGE_NAME)
+                    return $package['source']['reference'];
+            }
+        } catch(FilesystemOperationFailedException $ex) {
+            // no op
+        }
+
+        return 'UNKNOWN';
+    }
+
+    public function getLongVersion()
+    {
+        $commit = $this->getBuildCommit();
+        if($commit === 'UNKNOWN')
+            return sprintf('<info>%s</info> (repo)', $this->getName());
+        return sprintf('<info>%s</info> version <comment>%s</comment>; commit <comment>%s</comment>', $this->getName(), $this->getVersion(), $this->getBuildCommit());
     }
 
     protected function getDefaultInputDefinition()
@@ -69,6 +121,7 @@ class CliCentralApplication extends Application
     protected function getDefaultCommands()
     {
         return array_merge(parent::getDefaultCommands(), [
+            new Command\SelfUpdateCommand(),
             new Command\Config\InitCommand(),
             new Command\Config\SetCommand(),
             new Command\Config\UnsetCommand(),

@@ -20,6 +20,7 @@
     "symfony/console": "^3.1",
     "symfony/finder": "^3.1",
     "symfony/process": "^3.1",
-    "justinrainbow/json-schema": "^2.0"
+    "justinrainbow/json-schema": "^2.0",
+    "padraic/phar-updater": "^1.0"
   }
 }

@@ -1,0 +1,37 @@
+{
+  "alias": "clic.phar",
+  "chmod": "0755",
+  "directories": [
+    "bin",
+    "res",
+    "src"
+  ],
+  "files": [
+    "license.md"
+  ],
+  "finder": [
+    {
+      "name": [
+        "*.php",
+        "*.dist"
+      ],
+      "exclude": [
+        "tests",
+        "Tests"
+      ],
+      "in": [
+        "vendor"
+      ]
+    }
+  ],
+  "main": "bin/clic",
+  "stub": true,
+  "compactors": [
+    "Herrera\\Box\\Compactor\\Php"
+  ],
+  "datetime": "datetime",
+  "git-version": "git-version",
+  "git-commit": "git-commit",
+  "git-tag": "git-tag",
+  "output": "clic-@git-version@.phar"
+}

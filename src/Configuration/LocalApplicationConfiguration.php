@@ -96,6 +96,11 @@ class LocalApplicationConfiguration extends Configuration
         return $script;
     }
 
+    public function getScripts()
+    {
+        return array_keys(get_object_vars($this->getConfigOption(['scripts'])));
+    }
+
     public function getWebDir()
     {
         return $this->getConfigOption(['web-dir']);

@@ -42,7 +42,7 @@ class ExecCommand extends Command
     {
         $this->setName('application:execute')
             ->addArgument('application', InputArgument::REQUIRED, 'Application name')
-            ->addArgument('script', InputArgument::REQUIRED, 'The script to execute')
+            ->addArgument('script', InputArgument::OPTIONAL, 'The script to execute')
             ->setDescription('Executes application scripts')
             ->setHelp(<<<'EOF'
 The <info>%command.name%</info> command executes scripts defined in the applications' <comment>.cliconfig.json</comment> file.
@@ -50,6 +50,10 @@ The <info>%command.name%</info> command executes scripts defined in the applicat
   <info>%command.full_name% prod/authserver update</info>
 
 This executes the <comment>update</comment> script as defined in <comment>.cliconfig.json</comment>.
+
+Running the command without <info>script</info> argument will show a list of available scripts.
+
+  <info>%command.full_name% prod/authserver</info>
 
 <options=bold;underscore>Execution environment</>
 
@@ -89,13 +93,19 @@ EOF
         $globalConfiguration = $configHelper->getConfiguration();
         $application = $globalConfiguration->getApplication($input->getArgument('application'));
 
-        $process = $application->getScriptProcess($input->getArgument('script'));
+        if($input->getArgument('script')) {
 
-        $processHelper =  $this->getHelper('process');
-        /* @var $processHelper ProcessHelper */
+            $process = $application->getScriptProcess($input->getArgument('script'));
 
-        $processHelper->mustRun($output, $process, null, null, OutputInterface::VERBOSITY_NORMAL, OutputInterface::VERBOSITY_NORMAL);
+            $processHelper = $this->getHelper('process');
+            /* @var $processHelper ProcessHelper */
 
-        return $process->getExitCode();
+            $processHelper->mustRun($output, $process, null, null, OutputInterface::VERBOSITY_NORMAL, OutputInterface::VERBOSITY_NORMAL);
+
+            return $process->getExitCode();
+        } else {
+            $output->writeln(implode(PHP_EOL, $application->getScripts()));
+            return 126;
+        }
     }
 }

@@ -103,6 +103,11 @@ class Application extends ApplicationConfiguration
         }
     }
 
+    public function getScripts()
+    {
+        return $this->getConfiguration()->getScripts();
+    }
+
     public function getWebDirectory()
     {
         $webDir = new \SplFileInfo($this->getPath().'/'.$this->getConfiguration()->getWebDir());

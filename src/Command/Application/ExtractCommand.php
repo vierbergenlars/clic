@@ -29,13 +29,11 @@
 namespace vierbergenlars\CliCentral\Command\Application;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\ProcessHelper;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Configuration\Application;
 use vierbergenlars\CliCentral\Exception\File\NotEmptyException;
 use vierbergenlars\CliCentral\FsUtil;

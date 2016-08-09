@@ -29,7 +29,6 @@
 namespace vierbergenlars\CliCentral\Command\Application;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\ProcessHelper;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
@@ -45,6 +44,7 @@ use vierbergenlars\CliCentral\Exception\File\FileExistsException;
 use vierbergenlars\CliCentral\Exception\File\NotEmptyException;
 use vierbergenlars\CliCentral\FsUtil;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
+use vierbergenlars\CliCentral\Helper\ProcessHelper;
 use vierbergenlars\CliCentral\Util;
 
 class CloneCommand extends Command
@@ -165,16 +165,13 @@ EOF
         /*
          * Run a git clone for the application
          */
-        $prevVerbosity = $output->getVerbosity();
-        $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
         $gitClone = ProcessBuilder::create([
             'git',
             'clone',
             Util::replaceRepositoryUrl($repositoryParts, $repositoryConfiguration),
             $application->getPath(),
         ])->setTimeout(null)->getProcess();
-        $processHelper->mustRun($output, $gitClone);
-        $output->setVerbosity($prevVerbosity);
+        $processHelper->mustRun($output, $gitClone, null, null, OutputInterface::VERBOSITY_NORMAL, OutputInterface::VERBOSITY_NORMAL);
 
         $configHelper->getConfiguration()->removeApplication($application->getName()); // Clean up application again, so application:add further down does not complain.
 

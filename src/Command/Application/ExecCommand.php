@@ -29,11 +29,11 @@
 namespace vierbergenlars\CliCentral\Command\Application;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\ProcessHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
+use vierbergenlars\CliCentral\Helper\ProcessHelper;
 
 
 class ExecCommand extends Command
@@ -93,7 +93,8 @@ EOF
 
         $processHelper =  $this->getHelper('process');
         /* @var $processHelper ProcessHelper */
-        $processHelper->run($output, $process, null, null, OutputInterface::VERBOSITY_NORMAL);
+
+        $processHelper->mustRun($output, $process, null, null, OutputInterface::VERBOSITY_NORMAL, OutputInterface::VERBOSITY_NORMAL);
 
         return $process->getExitCode();
     }

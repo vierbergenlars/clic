@@ -33,8 +33,6 @@ use Symfony\Component\Process\Process;
 use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
 use vierbergenlars\CliCentral\Exception\File\NotADirectoryException;
-use vierbergenlars\CliCentral\Exception\File\NotAFileException;
-use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
 use vierbergenlars\CliCentral\Exception\NoScriptException;
 
 class Application extends ApplicationConfiguration

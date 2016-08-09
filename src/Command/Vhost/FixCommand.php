@@ -28,7 +28,6 @@
 
 namespace vierbergenlars\CliCentral\Command\Vhost;
 
-use Symfony\Component\Console\Helper\ProcessHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -37,6 +36,7 @@ use vierbergenlars\CliCentral\Configuration\VhostConfiguration;
 use vierbergenlars\CliCentral\Exception\File\FileException;
 use vierbergenlars\CliCentral\Exception\File\FilesystemOperationFailedException;
 use vierbergenlars\CliCentral\FsUtil;
+use vierbergenlars\CliCentral\Helper\ProcessHelper;
 
 class FixCommand extends AbstractMultiVhostsCommand
 {

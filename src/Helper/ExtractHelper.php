@@ -28,7 +28,6 @@
 
 namespace vierbergenlars\CliCentral\Helper;
 use Symfony\Component\Console\Helper\Helper;
-use Symfony\Component\Console\Helper\ProcessHelper;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Process\ProcessBuilder;

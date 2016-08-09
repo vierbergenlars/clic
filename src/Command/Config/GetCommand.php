@@ -35,7 +35,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
-use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParameterException;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
 use vierbergenlars\CliCentral\Util;
 

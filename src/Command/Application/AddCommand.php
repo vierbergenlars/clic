@@ -29,7 +29,6 @@
 namespace vierbergenlars\CliCentral\Command\Application;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\ProcessHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -40,6 +39,7 @@ use vierbergenlars\CliCentral\Configuration\RepositoryConfiguration;
 use vierbergenlars\CliCentral\Exception\Configuration\ApplicationExistsException;
 use vierbergenlars\CliCentral\Exception\Configuration\NoSuchApplicationException;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
+use vierbergenlars\CliCentral\Helper\ProcessHelper;
 use vierbergenlars\CliCentral\Util;
 
 class AddCommand extends Command

@@ -29,7 +29,6 @@
 namespace vierbergenlars\CliCentral\Command\Application;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\ProcessHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -37,12 +36,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\ProcessBuilder;
-use vierbergenlars\CliCentral\Configuration\GlobalConfiguration;
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
 use vierbergenlars\CliCentral\FsUtil;
 use vierbergenlars\CliCentral\Helper\ExtractHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
+use vierbergenlars\CliCentral\Helper\ProcessHelper;
 use vierbergenlars\CliCentral\Util;
 
 class OverrideCommand extends Command
@@ -224,28 +223,22 @@ EOF
             /*
              * Run a git clone for the application
              */
-            $prevVerbosity = $output->getVerbosity();
-            $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
             $gitClone = ProcessBuilder::create([
                 'git',
                 'clone',
                 $configFile,
                 $configDir
             ])->setTimeout(null)->getProcess();
-            $processHelper->mustRun($output, $gitClone);
-            $output->setVerbosity($prevVerbosity);
+            $processHelper->mustRun($output, $gitClone, null, null, OutputInterface::VERBOSITY_NORMAL, OutputInterface::VERBOSITY_NORMAL);
         } else {
             /*
              * Run a git pull for the application
              */
-            $prevVerbosity = $output->getVerbosity();
-            $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
             $gitPull = ProcessBuilder::create([
                 'git',
                 'pull',
             ])->setTimeout(null)->setWorkingDirectory($configDir)->getProcess();
-            $processHelper->mustRun($output, $gitPull);
-            $output->setVerbosity($prevVerbosity);
+            $processHelper->mustRun($output, $gitPull, null, null, OutputInterface::VERBOSITY_NORMAL, OutputInterface::VERBOSITY_NORMAL);
         }
         $configFile = $configDir;
         return $configFile;

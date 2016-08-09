@@ -29,7 +29,6 @@
 namespace vierbergenlars\CliCentral\Command\Repository;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\ProcessHelper;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -43,6 +42,7 @@ use vierbergenlars\CliCentral\Exception\Configuration\RepositoryExistsException;
 use vierbergenlars\CliCentral\Exception\File\FileExistsException;
 use vierbergenlars\CliCentral\Exception\File\OutsideConfiguredRootDirectoryException;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
+use vierbergenlars\CliCentral\Helper\ProcessHelper;
 use vierbergenlars\CliCentral\Util;
 
 class GenerateCommand extends Command

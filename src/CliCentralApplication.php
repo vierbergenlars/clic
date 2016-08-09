@@ -32,15 +32,13 @@ use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Helper\DebugFormatterHelper;
 use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Helper\HelperSet;
-use Symfony\Component\Console\Helper\ProcessHelper;
 use Symfony\Component\Console\Helper\SymfonyQuestionHelper;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Process\Exception\ProcessFailedException;
-use Symfony\Component\Process\ProcessBuilder;
 use vierbergenlars\CliCentral\Command;
 use vierbergenlars\CliCentral\Exception\File\FilesystemOperationFailedException;
 use vierbergenlars\CliCentral\Helper\ExtractHelper;
 use vierbergenlars\CliCentral\Helper\GlobalConfigurationHelper;
+use vierbergenlars\CliCentral\Helper\ProcessHelper;
 
 class CliCentralApplication extends Application
 {

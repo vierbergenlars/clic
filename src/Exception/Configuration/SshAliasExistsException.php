@@ -29,8 +29,6 @@
 
 namespace vierbergenlars\CliCentral\Exception\Configuration;
 
-use vierbergenlars\CliCentral\Exception\Configuration\ConfigurationException;
-
 class SshAliasExistsException extends \RuntimeException
 {
     /**

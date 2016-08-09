@@ -33,6 +33,7 @@ use vierbergenlars\CliCentral\Exception\Configuration\MissingConfigurationParame
 use vierbergenlars\CliCentral\Exception\File\NotAFileException;
 use vierbergenlars\CliCentral\Exception\File\UnreadableFileException;
 use vierbergenlars\CliCentral\Exception\JsonValidationException;
+use vierbergenlars\CliCentral\FsUtil;
 
 abstract class Configuration
 {
@@ -143,6 +144,6 @@ abstract class Configuration
     public function write()
     {
         $this->validate();
-        file_put_contents($this->getConfigFile()->getPathname(),json_encode($this->config, JSON_PRETTY_PRINT));
+        FsUtil::file_put_contents($this->getConfigFile()->getPathname(),json_encode($this->config, JSON_PRETTY_PRINT));
     }
 }

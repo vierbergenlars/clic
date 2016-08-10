@@ -74,12 +74,17 @@ class GlobalConfigurationHelper extends Helper implements InputAwareInterface
     public function getConfiguration()
     {
         if(!$this->globalConfiguration) {
-            $configFile = $this->input->getOption('config');
-            if(!$configFile)
-                throw new InvalidOptionException('Missing configuration file (--config|-c)');
-            $this->globalConfiguration = new GlobalConfiguration(new \SplFileInfo($configFile));
+            $this->globalConfiguration = new GlobalConfiguration($this->getConfigurationFile());
         }
         return $this->globalConfiguration;
+    }
+
+    public function getConfigurationFile()
+    {
+        $configFile = $this->input->getOption('config');
+        if(!$configFile)
+            throw new InvalidOptionException('Missing configuration file (--config|-c)');
+        return new \SplFileInfo($configFile);
     }
 
     public function getDirectoryHelper()

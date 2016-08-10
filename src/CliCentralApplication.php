@@ -124,6 +124,7 @@ class CliCentralApplication extends Application
             new Command\Config\SetCommand(),
             new Command\Config\UnsetCommand(),
             new Command\Config\GetCommand(),
+            new Command\Config\RollbackCommand(),
             new Command\Repository\RemoveCommand(),
             new Command\Repository\AddCommand(),
             new Command\Repository\GenerateCommand(),

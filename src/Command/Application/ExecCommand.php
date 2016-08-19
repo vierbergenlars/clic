@@ -94,15 +94,10 @@ EOF
         $application = $globalConfiguration->getApplication($input->getArgument('application'));
 
         if($input->getArgument('script')) {
-
             $process = $application->getScriptProcess($input->getArgument('script'));
 
-            $processHelper = $this->getHelper('process');
-            /* @var $processHelper ProcessHelper */
-
-            $processHelper->mustRun($output, $process, null, null, OutputInterface::VERBOSITY_NORMAL, OutputInterface::VERBOSITY_NORMAL);
-
-            return $process->getExitCode();
+            chdir($process->getWorkingDirectory());
+            pcntl_exec('/bin/sh', ['-c', $process->getCommandLine()], $process->getEnv());
         } else {
             $output->writeln(implode(PHP_EOL, $application->getScripts()));
             return 126;
